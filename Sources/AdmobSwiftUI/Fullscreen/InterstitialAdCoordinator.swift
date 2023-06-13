@@ -8,21 +8,6 @@
 import GoogleMobileAds
 import SwiftUI
 
-// MARK: - Helper to present Interstitial Ad
-public struct AdViewControllerRepresentable: UIViewControllerRepresentable {
-    public var viewController = UIViewController()
-    
-    public init() {
-        
-    }
-    
-    public func makeUIViewController(context: Context) -> some UIViewController {
-        return viewController
-    }
-    
-    public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
-}
-
 public class InterstitialAdCoordinator: NSObject, GADFullScreenContentDelegate {
     private var interstitial: GADInterstitialAd?
     private let adUnitID: String
