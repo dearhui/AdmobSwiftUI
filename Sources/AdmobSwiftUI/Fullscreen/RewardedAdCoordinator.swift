@@ -9,11 +9,14 @@ import SwiftUI
 import GoogleMobileAds
 
 public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
+    private var rewardedInterstitialAd: GADRewardedInterstitialAd?
     private var rewardedAd: GADRewardedAd?
     private let adUnitID: String
+    private let InterstitialID: String
     
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/1712485313") {
+    public init(adUnitID: String = "ca-app-pub-3940256099942544/1712485313", InterstitialID: String = "ca-app-pub-3940256099942544/6978759866") {
         self.adUnitID = adUnitID
+        self.InterstitialID = InterstitialID
     }
     
     public func loadAd() {
@@ -23,7 +26,22 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
         }
     }
     
+    public func loadInterstitialAd() async throws -> GADRewardedInterstitialAd {
+        clean()
+        return try await withCheckedThrowingContinuation { continuation in
+            GADRewardedInterstitialAd.load(withAdUnitID: InterstitialID, request: GADRequest()) { ad, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else if let ad = ad {
+                    ad.fullScreenContentDelegate = self
+                    continuation.resume(returning: ad)
+                }
+            }
+        }
+    }
+
     public func loadAd() async throws -> GADRewardedAd {
+        clean()
         return try await withCheckedThrowingContinuation { continuation in
             GADRewardedAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
                 if let error = error {
@@ -36,8 +54,13 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
         }
     }
     
+    private func clean() {
+        self.rewardedInterstitialAd = nil
+        self.rewardedAd = nil
+    }
+    
     public func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
-        rewardedAd = nil
+        clean()
     }
     
     public func showAd(from viewController: UIViewController, userDidEarnRewardHandler completion: @escaping (Int) -> Void) {
