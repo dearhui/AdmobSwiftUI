@@ -4,9 +4,15 @@ AdmobSwiftUI is a Swift package that integrates Admob ads into SwiftUI. This pac
 
 - Banner
 - Interstitial
+- App Open
 - Reward
 - Reward Interstitial
 - Native
+
+## Requirements
+
+- iOS 14.0+
+- Google Mobile Ads SDK 10.6.0+
 
 ## Installation
 

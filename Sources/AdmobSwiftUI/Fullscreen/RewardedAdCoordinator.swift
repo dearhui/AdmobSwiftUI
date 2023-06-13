@@ -20,11 +20,14 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
     }
     
     public func loadAd() {
+        clean()
         GADRewardedAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
             self.rewardedAd = ad
             self.rewardedAd?.fullScreenContentDelegate = self
         }
     }
+    
+    // MARK: - async/await
     
     public func loadInterstitialAd() async throws -> GADRewardedInterstitialAd {
         clean()
@@ -40,7 +43,7 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
         }
     }
 
-    public func loadAd() async throws -> GADRewardedAd {
+    public func loadRewardedAd() async throws -> GADRewardedAd {
         clean()
         return try await withCheckedThrowingContinuation { continuation in
             GADRewardedAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
