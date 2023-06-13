@@ -1,7 +1,7 @@
 import GoogleMobileAds
 import SwiftUI
 
-public  struct NativeAdView: UIViewRepresentable {
+public struct NativeAdView: UIViewRepresentable {
     public typealias UIViewType = GADNativeAdView
     
     @ObservedObject var nativeViewModel: NativeAdViewModel
