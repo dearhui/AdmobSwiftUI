@@ -113,7 +113,7 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
     private var adLoader: GADAdLoader!
     private var adUnitID: String
     
-    init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
+    public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
         self.adUnitID = adUnitID
     }
     
