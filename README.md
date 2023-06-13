@@ -21,6 +21,28 @@ You can install AdmobSwiftUI using Swift Package Manager by adding the following
 ```
 https://github.com/dearhui/AdmobSwiftUI.git
 ```
+Before building the project, make sure you've added the -ObjC flag to the "Other Linker Flags" in the "Build Settings".
+
+## Configuration
+To use AdmobSwiftUI, you need to add some key values to your Info.plist as required by the Google Mobile Ads SDK. Please refer to the SDK documentation for more details.
+
+Additionally, you need to start the Google Mobile Ads SDK at the start of your app. Add the following code to your @main struct:
+
+```swit
+@main
+struct AdmobSwitUIDemoApp: App {
+    
+    init() {
+        GADMobileAds.sharedInstance().start(completionHandler: nil)
+    }
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
 
 ## Usage
 
@@ -43,10 +65,11 @@ Then, you can include Banner ads in your view, or show Interstitial or Reward ad
     var body: some View {
         ScrollView {
             VStack (spacing: 20) {
-                Button("Show InterstitialAd") {
+            
+                Button("Show App Open") {
                     Task {
                         do {
-                            let ad = try await adCoordinator.loadAd()
+                            let ad = try await adCoordinator.loadAppOpenAd()
                             ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
                         } catch {
                             print(error.localizedDescription)
@@ -54,7 +77,7 @@ Then, you can include Banner ads in your view, or show Interstitial or Reward ad
                     }
                 }
                 
-                Button("show reward") {
+                Button("Show reward InterstitialAd") {
                     Task {
                         do {
                             let reward = try await rewardCoordinator.loadInterstitialAd()
