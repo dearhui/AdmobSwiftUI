@@ -28,7 +28,7 @@ To use AdmobSwiftUI, you need to add some key values to your Info.plist as requi
 
 Additionally, you need to start the Google Mobile Ads SDK at the start of your app. Add the following code to your @main struct:
 
-```swit
+```swift
 @main
 struct AdmobSwitUIDemoApp: App {
     
