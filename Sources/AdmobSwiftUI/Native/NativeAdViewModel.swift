@@ -15,9 +15,11 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
     private var adUnitID: String
     private var lastRequestTime: Date?
     public var requestInterval: Int = 5 * 60 // 5 minutes
+    private static var cachedAds: [String: GADNativeAd] = [:]
     
     public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
         self.adUnitID = adUnitID
+        self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
     }
     
     public func refreshAd() {
@@ -47,6 +49,7 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
         self.nativeAd = nativeAd
         nativeAd.delegate = self
         self.isLoading = false
+        NativeAdViewModel.cachedAds[adUnitID] = nativeAd
     }
     
     public func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
