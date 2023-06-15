@@ -14,7 +14,7 @@ class NativeAdCardView: GADNativeAdView {
     let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 11, weight: .semibold), textColor: .white)
     let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 17, weight: .medium), textColor: .label)
     let myMediaView = GADMediaView()
-    let callToActionButton = UIButton()
+    let callToActionButton = UIButton(title: "", titleColor: .white, font: .boldSystemFont(ofSize: 18), backgroundColor: UIColor(hex: "#3871E0"), target: nil, action: nil)
     let iconImageView = UIImageView()
     let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
     let storeLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
@@ -41,6 +41,8 @@ class NativeAdCardView: GADNativeAdView {
         self.starRatingView = starRatingImageView
 //        self.advertiserView = advertiserLabel
         
+        callToActionButton.layer.cornerRadius = 12
+        
         addSubview(adTag)
         adTag.backgroundColor = .orange
         adTag.anchor(top: nil, leading: leadingAnchor, bottom: bottomAnchor, trailing: nil)
@@ -55,7 +57,8 @@ class NativeAdCardView: GADNativeAdView {
                        spacing: 8),
                 bodyLabel,
                 UIView(),
-                hstack(UIView(), priceLabel, storeLabel, callToActionButton, spacing: 12)
+//                hstack(UIView(), priceLabel, storeLabel, callToActionButton, spacing: 12)
+                hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 10, right: 10))
                 , spacing: 8
               ).withMargins(.allSides(10))
         )
@@ -66,3 +69,21 @@ class NativeAdCardView: GADNativeAdView {
     }
 }
 
+extension UIColor {
+    convenience init(hex: String, alpha: CGFloat = 1.0) {
+        var hexFormatted: String = hex.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        hexFormatted = hexFormatted.replacingOccurrences(of: "#", with: "")
+        
+        assert(hexFormatted.count == 6, "Invalid hex code used.")
+        
+        var rgbValue: UInt64 = 0
+        Scanner(string: hexFormatted).scanHexInt64(&rgbValue)
+        
+        self.init(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: alpha
+        )
+    }
+}
