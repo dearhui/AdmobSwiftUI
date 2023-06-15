@@ -10,14 +10,32 @@ import GoogleMobileAds
 
 public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDelegate {
     @Published public var nativeAd: GADNativeAd?
+    @Published public var isLoading: Bool = false
     private var adLoader: GADAdLoader!
     private var adUnitID: String
+    private var lastRequestTime: Date?
+    public var requestInterval: Int = 5 * 60 // 5 minutes
     
     public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
         self.adUnitID = adUnitID
     }
     
     public func refreshAd() {
+        let now = Date()
+        
+        if nativeAd != nil, let lastRequest = lastRequestTime, now.timeIntervalSince(lastRequest) < Double(requestInterval) {
+            print("The last request was made less than \(requestInterval / 60) minutes ago. New request is canceled.")
+            return
+        }
+        
+        guard !isLoading else {
+            print("Previous request is still loading, new request is canceled.")
+            return
+        }
+        
+        isLoading = true
+        lastRequestTime = now
+        
         let adViewOptions = GADNativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
         adLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: nil, adTypes: [.native], options: [adViewOptions])
@@ -28,10 +46,12 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
     public func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADNativeAd) {
         self.nativeAd = nativeAd
         nativeAd.delegate = self
+        self.isLoading = false
     }
     
     public func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
         print("\(adLoader) failed with error: \(error.localizedDescription)")
+        self.isLoading = false
     }
 }
 
