@@ -45,7 +45,9 @@ class NativeAdCardView: GADNativeAdView {
         adTag.backgroundColor = .orange
         adTag.anchor(top: nil, leading: leadingAnchor, bottom: bottomAnchor, trailing: nil)
         
-
+        myMediaView.translatesAutoresizingMaskIntoConstraints = false
+        myMediaView.heightAnchor.constraint(equalTo: myMediaView.widthAnchor, multiplier: 9.0/16.0).isActive = true
+        
         stack(myMediaView,
               stack(
                 hstack(iconImageView.withWidth(40).withHeight(40),
