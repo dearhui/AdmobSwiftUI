@@ -1,20 +1,39 @@
 import GoogleMobileAds
 import SwiftUI
 
+public enum NativeAdViewStyle {
+    case basic
+    case card
+    
+    var nibName: String {
+        switch self {
+        case .basic:
+            return "NativeAdView"
+        case .card:
+            return ""
+        }
+    }
+}
+
 public struct NativeAdView: UIViewRepresentable {
     public typealias UIViewType = GADNativeAdView
     
     @ObservedObject var nativeViewModel: NativeAdViewModel
+    var style: NativeAdViewStyle
     
-    public init(nativeViewModel: NativeAdViewModel) {
+    public init(nativeViewModel: NativeAdViewModel, style: NativeAdViewStyle = .basic) {
         self.nativeViewModel = nativeViewModel
+        self.style = style
     }
     
     public func makeUIView(context: Context) -> GADNativeAdView {
-        let bundle = Bundle.module
-        let nib = UINib(nibName: "NativeAdView", bundle: bundle)
-        let nativeAdView = nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
-        return nativeAdView
+        if style == .card {
+            return NativeAdCardView(frame: .zero)
+        } else {
+            let bundle = Bundle.module
+            let nib = UINib(nibName: style.nibName, bundle: bundle)
+            return nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
+        }
     }
     
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
@@ -45,12 +64,17 @@ public struct NativeAdView: UIViewRepresentable {
         // Note: this should always be done after populating the ad views.
         nativeAdView.nativeAd = nativeAd
     }
+}
+
+extension NativeAdView {
     
-    private func imageOfStars(from starRating: NSDecimalNumber?) -> UIImage? {
+    func imageOfStars(from starRating: NSDecimalNumber?) -> UIImage? {
         guard let rating = starRating?.doubleValue else {
             return nil
         }
+        
         let bundle = Bundle.module
+        
         if rating >= 5 {
             return UIImage(named: "stars_5", in: bundle, compatibleWith: nil)
         } else if rating >= 4.5 {
@@ -65,95 +89,21 @@ public struct NativeAdView: UIViewRepresentable {
     }
 }
 
-public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDelegate {
-    @Published var nativeAd: GADNativeAd?
-    private var adLoader: GADAdLoader!
-    private var adUnitID: String
-    
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
-        self.adUnitID = adUnitID
-    }
-    
-    public func refreshAd() {
-        adLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: nil, adTypes: [.native], options: nil)
-        adLoader.delegate = self
-        adLoader.load(GADRequest())
-    }
-    
-    public func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADNativeAd) {
-        self.nativeAd = nativeAd
-        nativeAd.delegate = self
-    }
-    
-    public func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
-        print("\(adLoader) failed with error: \(error.localizedDescription)")
-    }
-}
 
-// MARK: - GADNativeAdDelegate implementation
-extension NativeAdViewModel: GADNativeAdDelegate {
-    public func nativeAdDidRecordClick(_ nativeAd: GADNativeAd) {
-        print("\(#function) called")
-    }
-    
-    public func nativeAdDidRecordImpression(_ nativeAd: GADNativeAd) {
-        print("\(#function) called")
-    }
-    
-    public func nativeAdWillPresentScreen(_ nativeAd: GADNativeAd) {
-        print("\(#function) called")
-    }
-    
-    public func nativeAdWillDismissScreen(_ nativeAd: GADNativeAd) {
-        print("\(#function) called")
-    }
-    
-    public func nativeAdDidDismissScreen(_ nativeAd: GADNativeAd) {
-        print("\(#function) called")
-    }
-}
-
-/*
-struct NativeContentView: View {
-    @StateObject private var nativeViewModel = NativeAdViewModel()
-    let navigationTitle: String
-    
-    var body: some View {
+struct NativeAdView_Previews: PreviewProvider {
+    static var previews: some View {
+        // 创建一个模拟的 NativeAdViewModel
+        let viewModel = NativeAdViewModel()  // 可能需要根据你的实际情况进行修改
+        // 假设 NativeAdViewStyle.basic 是一个有效的样式
         ScrollView {
-            VStack(spacing: 20) {
-                NativeAdView(nativeViewModel: nativeViewModel)
-                    .frame(height: 300)
-                
-                Text(
-                    nativeViewModel.nativeAd?.mediaContent.hasVideoContent == true
-                    ? "Ad contains a video asset." : "Ad does not contain a video."
-                )
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.gray)
-                .opacity(nativeViewModel.nativeAd == nil ? 0 : 1)
-                
-                Button("Refresh Ad") {
-                    refreshAd()
-                }
-                
-                Text("SDK Version: \(GADMobileAds.sharedInstance().sdkVersion)")
+            VStack {
+                NativeAdView(nativeViewModel: viewModel, style: .card)
+                    .frame(width: .infinity, height: 300)
+                    .background(Color.red)
             }
             .padding()
         }
-        .onAppear {
-            refreshAd()
-        }
-        .navigationTitle(navigationTitle)
-    }
-    
-    private func refreshAd() {
-        nativeViewModel.refreshAd()
+        .background(Color.gray)
     }
 }
 
-struct NativeContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        NativeContentView(navigationTitle: "Native")
-    }
-}
-*/
