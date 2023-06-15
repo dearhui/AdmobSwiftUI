@@ -11,6 +11,7 @@ import SwiftUI
 public enum NativeAdViewStyle {
     case basic
     case card
+    case banner
     
     var view: GADNativeAdView {
         switch self {
@@ -18,6 +19,8 @@ public enum NativeAdViewStyle {
             return makeNibView(name: "NativeAdView")
         case .card:
             return NativeAdCardView(frame: .zero)
+        case .banner:
+            return NativeAdBannerView(frame: .zero)
         }
     }
     

@@ -49,13 +49,13 @@ struct ContentView: View {
                     .frame(height: 50)
                     .background(Color.red)
                 
-                NativeAdView(nativeViewModel: nativeViewModel, style: .basic)
-                    .frame(height: 350) // 250 ~ 300
+                NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
+                    .frame(height: 80)
                     .background(Color(UIColor.secondarySystemBackground))
                 
-                NativeAdView(nativeViewModel: nativeViewModel, style: .card)
-                    .frame(height: 350) // 250 ~ 300
-                    .background(Color(UIColor.secondarySystemBackground))
+//                NativeAdView(nativeViewModel: nativeViewModel, style: .card)
+//                    .frame(height: 380) // 250 ~ 300
+//                    .background(Color(UIColor.secondarySystemBackground))
                     
             }
             .padding()
