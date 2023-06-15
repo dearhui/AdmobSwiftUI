@@ -16,10 +16,12 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
     private var lastRequestTime: Date?
     public var requestInterval: Int = 5 * 60 // 5 minutes
     private static var cachedAds: [String: GADNativeAd] = [:]
+    private static var lastRequestTimes: [String: Date] = [:]
     
     public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511") {
         self.adUnitID = adUnitID
         self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
+        self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
     }
     
     public func refreshAd() {
@@ -37,6 +39,7 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
         
         isLoading = true
         lastRequestTime = now
+        NativeAdViewModel.lastRequestTimes[adUnitID] = now
         
         let adViewOptions = GADNativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
