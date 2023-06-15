@@ -17,11 +17,11 @@ class NativeAdCardView: GADNativeAdView {
     let callToActionButton = UIButton(title: "", titleColor: .white, font: .boldSystemFont(ofSize: 18), backgroundColor: UIColor(hex: "#3871E0"), target: nil, action: nil)
     let iconImageView = UIImageView()
     let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
-    let storeLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
-    let priceLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
-//    let imageView = UIImageView()
     let starRatingImageView = UIImageView()
-    let advertiserLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
+    
+//    let storeLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
+//    let priceLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
+//    let advertiserLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -30,43 +30,42 @@ class NativeAdCardView: GADNativeAdView {
     
     func setupViews() {
         self.headlineView = headlineLabel
-        self.mediaView = myMediaView
-        self.callToActionView = callToActionButton
-        self.iconView = iconImageView
-        bodyLabel.numberOfLines = 2
-        self.bodyView = bodyLabel
-        self.storeView = storeLabel
-        self.priceView = priceLabel
-//        self.imageView = imageView
-        self.starRatingView = starRatingImageView
-//        self.advertiserView = advertiserLabel
-        
-        callToActionButton.layer.cornerRadius = 8
-        callToActionButton.clipsToBounds = true
-        
-        addSubview(adTag)
-        adTag.backgroundColor = .orange
-        adTag.anchor(top: nil, leading: leadingAnchor, bottom: bottomAnchor, trailing: nil)
         
         myMediaView.translatesAutoresizingMaskIntoConstraints = false
         myMediaView.heightAnchor.constraint(equalTo: myMediaView.widthAnchor, multiplier: 9.0/16.0).isActive = true
+        self.mediaView = myMediaView
         
-//        iconImageView.heightAnchor.constraint(equalTo: iconImageView.widthAnchor, multiplier: 1).isActive = true
+        callToActionButton.isUserInteractionEnabled = false
+        callToActionButton.layer.cornerRadius = 8
+        callToActionButton.clipsToBounds = true
+        self.callToActionView = callToActionButton
+        
         iconImageView.layer.cornerRadius = 4
         iconImageView.clipsToBounds = true
+        self.iconView = iconImageView
         
-        stack(myMediaView,
-              stack(
-                hstack(iconImageView.withWidth(40).withHeight(40),
-                       stack(headlineLabel, hstack(starRatingImageView.withWidth(100).withHeight(17), UIView())),
-                       spacing: 8),
-                bodyLabel,
-                UIView(),
-//                hstack(UIView(), priceLabel, storeLabel, callToActionButton, spacing: 12)
-                hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 10, right: 10))
-                , spacing: 8
-              ).withMargins(.allSides(10))
-        )
+        bodyLabel.numberOfLines = 2
+        bodyLabel.isUserInteractionEnabled = false
+        bodyLabel.textColor = .secondaryLabel
+        self.bodyView = bodyLabel
+        
+        starRatingImageView.withWidth(100).withHeight(17)
+        self.starRatingView = starRatingImageView
+        
+        adTag.withWidth(20)
+        adTag.textAlignment = .center
+        adTag.backgroundColor = .orange
+        adTag.layer.cornerRadius = 2
+        adTag.clipsToBounds = true
+        
+        let space = UIView()
+        
+        let starRattingStack = hstack(adTag, starRatingImageView, space, spacing: 4)
+        let headlineStarStack = stack(headlineLabel, starRattingStack,spacing: 8)
+        let iconHeadlineStack = hstack(iconImageView.withWidth(40).withHeight(40), headlineStarStack, spacing: 8)
+        let buttonStack = hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 0, right: 10))
+        let bottomStack = stack(iconHeadlineStack, bodyLabel, buttonStack, spacing: 8).withMargins(.allSides(10))
+        stack(myMediaView, bottomStack)
     }
     
     required init?(coder aDecoder: NSCoder) {

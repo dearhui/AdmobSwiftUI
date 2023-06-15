@@ -14,6 +14,8 @@ struct ContentView: View {
     private let adCoordinator = InterstitialAdCoordinator()
     private let rewardCoordinator = RewardedAdCoordinator()
     
+    @State private var hiddenNative = false
+    
     var body: some View {
         ScrollView {
             VStack (spacing: 20) {
@@ -45,17 +47,25 @@ struct ContentView: View {
                     nativeViewModel.refreshAd()
                 }
                 
+                Button("hidden native") {
+                    hiddenNative.toggle()
+                }
+                
                 BannerView()
                     .frame(height: 50)
                     .background(Color.red)
                 
-                NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
-                    .frame(height: 80)
-                    .background(Color(UIColor.secondarySystemBackground))
+                if !hiddenNative {
+//                    NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
+//                        .frame(height: 80)
+//                        .background(Color(UIColor.secondarySystemBackground))
+                    
+                    NativeAdView(nativeViewModel: nativeViewModel, style: .card)
+                        .frame(height: 380) // 250 ~ 300
+                        .background(Color(UIColor.secondarySystemBackground))
+                }
                 
-//                NativeAdView(nativeViewModel: nativeViewModel, style: .card)
-//                    .frame(height: 380) // 250 ~ 300
-//                    .background(Color(UIColor.secondarySystemBackground))
+                
                     
             }
             .padding()
