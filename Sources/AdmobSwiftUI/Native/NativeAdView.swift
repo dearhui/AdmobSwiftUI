@@ -25,6 +25,7 @@ public struct NativeAdView: UIViewRepresentable {
         
         if !nativeAd.mediaContent.hasVideoContent {
             nativeAdView.mediaView?.contentMode = .scaleAspectFill
+            nativeAdView.mediaView?.clipsToBounds = true
         }
         
         (nativeAdView.bodyView as? UILabel)?.text = nativeAd.body
