@@ -41,7 +41,8 @@ class NativeAdCardView: GADNativeAdView {
         self.starRatingView = starRatingImageView
 //        self.advertiserView = advertiserLabel
         
-        callToActionButton.layer.cornerRadius = 12
+        callToActionButton.layer.cornerRadius = 8
+        callToActionButton.clipsToBounds = true
         
         addSubview(adTag)
         adTag.backgroundColor = .orange
@@ -49,6 +50,10 @@ class NativeAdCardView: GADNativeAdView {
         
         myMediaView.translatesAutoresizingMaskIntoConstraints = false
         myMediaView.heightAnchor.constraint(equalTo: myMediaView.widthAnchor, multiplier: 9.0/16.0).isActive = true
+        
+//        iconImageView.heightAnchor.constraint(equalTo: iconImageView.widthAnchor, multiplier: 1).isActive = true
+        iconImageView.layer.cornerRadius = 4
+        iconImageView.clipsToBounds = true
         
         stack(myMediaView,
               stack(

@@ -33,11 +33,13 @@ class NativeAdBannerView: GADNativeAdView {
         
         adTag.withWidth(20)
         adTag.backgroundColor = .orange
-        adTag.layer.cornerRadius = 4
+        adTag.layer.cornerRadius = 2
         adTag.clipsToBounds = true
         
         // config 1:1
         iconImageView.heightAnchor.constraint(equalTo: iconImageView.widthAnchor, multiplier: 1).isActive = true
+        iconImageView.layer.cornerRadius = 4
+        iconImageView.clipsToBounds = true
         
         headlineLabel.numberOfLines = 1
         headlineLabel.lineBreakMode = .byWordWrapping
