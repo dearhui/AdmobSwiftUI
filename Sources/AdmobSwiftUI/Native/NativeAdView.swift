@@ -23,6 +23,10 @@ public struct NativeAdView: UIViewRepresentable {
         
         nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
         
+        if !nativeAd.mediaContent.hasVideoContent {
+            nativeAdView.mediaView?.contentMode = .scaleAspectFill
+        }
+        
         (nativeAdView.bodyView as? UILabel)?.text = nativeAd.body
         
         (nativeAdView.iconView as? UIImageView)?.image = nativeAd.icon?.image

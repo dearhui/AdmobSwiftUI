@@ -65,7 +65,7 @@ class NativeAdCardView: GADNativeAdView {
         let iconHeadlineStack = hstack(iconImageView.withWidth(40).withHeight(40), headlineStarStack, spacing: 8)
         let buttonStack = hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 0, right: 10))
         let bottomStack = stack(iconHeadlineStack, bodyLabel, buttonStack, spacing: 8).withMargins(.allSides(10))
-        stack(myMediaView, bottomStack)
+        stack(myMediaView, bottomStack, spacing: 8)
     }
     
     required init?(coder aDecoder: NSCoder) {
