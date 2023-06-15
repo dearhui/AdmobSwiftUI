@@ -2,9 +2,17 @@ import GoogleMobileAds
 import SwiftUI
 
 public enum NativeAdViewStyle {
-    case largeBanner
+    case basic
     case card
-    case banner
+    
+    var nibName: String {
+        switch self {
+        case .basic:
+            return "NativeAdView"
+        case .card:
+            return ""
+        }
+    }
 }
 
 public struct NativeAdView: UIViewRepresentable {
@@ -13,31 +21,20 @@ public struct NativeAdView: UIViewRepresentable {
     @ObservedObject var nativeViewModel: NativeAdViewModel
     var style: NativeAdViewStyle
     
-    public init(nativeViewModel: NativeAdViewModel, style: NativeAdViewStyle) {
+    public init(nativeViewModel: NativeAdViewModel, style: NativeAdViewStyle = .basic) {
         self.nativeViewModel = nativeViewModel
         self.style = style
     }
     
     public func makeUIView(context: Context) -> GADNativeAdView {
-        switch style {
-        case .largeBanner:
+        if style == .card {
+            return NativeAdCardView(frame: .zero)
+        } else {
             let bundle = Bundle.module
-            let nib = UINib(nibName: "NativeAdView", bundle: bundle)
+            let nib = UINib(nibName: style.nibName, bundle: bundle)
             return nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
-        case .banner:
-            return bannerStyleView()
-        case .card:
-            return cardStyleView()
         }
     }
-    
-    func cardStyleView() -> GADNativeAdView {
-        let bundle = Bundle.module
-        let nib = UINib(nibName: "NativeAdViewCard", bundle: bundle)
-        return nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
-    }
-
-
     
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
@@ -70,52 +67,6 @@ public struct NativeAdView: UIViewRepresentable {
 }
 
 extension NativeAdView {
-    func bannerStyleView() -> GADNativeAdView {
-        let nativeAdView = GADNativeAdView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 80))
-        
-        let iconView = UIImageView()
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        nativeAdView.addSubview(iconView)
-        nativeAdView.iconView = iconView
-        
-        let headlineView = UILabel()
-        headlineView.translatesAutoresizingMaskIntoConstraints = false
-        nativeAdView.addSubview(headlineView)
-        nativeAdView.headlineView = headlineView
-        
-        let starRatingView = UIImageView()
-        starRatingView.translatesAutoresizingMaskIntoConstraints = false
-        nativeAdView.addSubview(starRatingView)
-        nativeAdView.starRatingView = starRatingView
-        
-        let callToActionView = UIButton(type: .system)
-        callToActionView.translatesAutoresizingMaskIntoConstraints = false
-        nativeAdView.addSubview(callToActionView)
-        nativeAdView.callToActionView = callToActionView
-        
-        // Constraints for subviews
-        NSLayoutConstraint.activate([
-            iconView.leadingAnchor.constraint(equalTo: nativeAdView.leadingAnchor, constant: 8),
-            iconView.topAnchor.constraint(equalTo: nativeAdView.topAnchor, constant: 8),
-            iconView.widthAnchor.constraint(equalToConstant: 60),
-            iconView.bottomAnchor.constraint(equalTo: nativeAdView.bottomAnchor, constant: -8),
-            
-            headlineView.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            headlineView.topAnchor.constraint(equalTo: nativeAdView.topAnchor, constant: 8),
-            
-            starRatingView.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 8),
-            starRatingView.topAnchor.constraint(equalTo: headlineView.bottomAnchor, constant: 2),
-            starRatingView.widthAnchor.constraint(equalToConstant: 100),
-            starRatingView.heightAnchor.constraint(equalToConstant: 17),
-            
-//            callToActionView.leadingAnchor.constraint(equalTo: starRatingView.trailingAnchor, constant: 8),
-            callToActionView.trailingAnchor.constraint(equalTo: nativeAdView.trailingAnchor, constant: -8),
-            callToActionView.centerYAnchor.constraint(equalTo: nativeAdView.centerYAnchor),
-            callToActionView.widthAnchor.constraint(equalToConstant: 60)
-        ])
-        
-        return nativeAdView
-    }
     
     func imageOfStars(from starRating: NSDecimalNumber?) -> UIImage? {
         guard let rating = starRating?.doubleValue else {
@@ -137,3 +88,22 @@ extension NativeAdView {
         }
     }
 }
+
+
+struct NativeAdView_Previews: PreviewProvider {
+    static var previews: some View {
+        // 创建一个模拟的 NativeAdViewModel
+        let viewModel = NativeAdViewModel()  // 可能需要根据你的实际情况进行修改
+        // 假设 NativeAdViewStyle.basic 是一个有效的样式
+        ScrollView {
+            VStack {
+                NativeAdView(nativeViewModel: viewModel, style: .card)
+                    .frame(width: .infinity, height: 300)
+                    .background(Color.red)
+            }
+            .padding()
+        }
+        .background(Color.gray)
+    }
+}
+

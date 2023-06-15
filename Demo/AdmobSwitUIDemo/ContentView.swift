@@ -41,30 +41,33 @@ struct ContentView: View {
                     }
                 }
                 
+                Button("reload native") {
+                    nativeViewModel.refreshAd()
+                }
+                
                 BannerView()
                     .frame(height: 50)
                     .background(Color.red)
                 
-                NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
-                    .frame(height: 80) // 250 ~ 300
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                
-                    .onAppear {
-                        nativeViewModel.refreshAd()
-                    }
+                NativeAdView(nativeViewModel: nativeViewModel, style: .basic)
+                    .frame(height: 350) // 250 ~ 300
+                    .background(Color(UIColor.secondarySystemBackground))
                 
                 NativeAdView(nativeViewModel: nativeViewModel, style: .card)
-                    .frame(height: 300) // 250 ~ 300
-                    .padding(.horizontal)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(height: 350) // 250 ~ 300
+                    .background(Color(UIColor.secondarySystemBackground))
+                    
             }
+            .padding()
         }
-        .padding()
         .background {
             // Add the adViewControllerRepresentable to the background so it
             // doesn't influence the placement of other views in the view hierarchy.
             adViewControllerRepresentable
                 .frame(width: .zero, height: .zero)
+        }
+        .onAppear {
+            nativeViewModel.refreshAd()
         }
     }
 }
