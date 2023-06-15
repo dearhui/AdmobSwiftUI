@@ -1,20 +1,6 @@
 import GoogleMobileAds
 import SwiftUI
 
-public enum NativeAdViewStyle {
-    case basic
-    case card
-    
-    var nibName: String {
-        switch self {
-        case .basic:
-            return "NativeAdView"
-        case .card:
-            return ""
-        }
-    }
-}
-
 public struct NativeAdView: UIViewRepresentable {
     public typealias UIViewType = GADNativeAdView
     
@@ -27,13 +13,7 @@ public struct NativeAdView: UIViewRepresentable {
     }
     
     public func makeUIView(context: Context) -> GADNativeAdView {
-        if style == .card {
-            return NativeAdCardView(frame: .zero)
-        } else {
-            let bundle = Bundle.module
-            let nib = UINib(nibName: style.nibName, bundle: bundle)
-            return nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
-        }
+        return style.view
     }
     
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
