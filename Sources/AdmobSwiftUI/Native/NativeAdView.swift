@@ -19,29 +19,44 @@ public struct NativeAdView: UIViewRepresentable {
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
         
-        (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
-        
+        // media require
         nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
-        
         if !nativeAd.mediaContent.hasVideoContent {
             nativeAdView.mediaView?.contentMode = .scaleAspectFill
             nativeAdView.mediaView?.clipsToBounds = true
         }
         
+        // headline require
+        (nativeAdView.headlineView as? UILabel)?.text = nativeAd.headline
+        
+        // body
         (nativeAdView.bodyView as? UILabel)?.text = nativeAd.body
+        nativeAdView.bodyView?.isHidden = nativeAd.body == nil
         
+        // icon
         (nativeAdView.iconView as? UIImageView)?.image = nativeAd.icon?.image
-        nativeAdView.iconView?.isHidden = nativeAd.icon == nil
+        nativeAdView.iconView?.isHidden = (nativeAd.icon == nil)
         
-        (nativeAdView.starRatingView as? UIImageView)?.image = imageOfStars(from: nativeAd.starRating)
+        // ratting
+        let starRattingImage = imageOfStars(from: nativeAd.starRating)
+        (nativeAdView.starRatingView as? UIImageView)?.image = starRattingImage
+        nativeAdView.starRatingView?.isHidden = (starRattingImage == nil)
         
+        // store
         (nativeAdView.storeView as? UILabel)?.text = nativeAd.store
+        nativeAdView.storeView?.isHidden = nativeAd.store == nil
         
+        // price
         (nativeAdView.priceView as? UILabel)?.text = nativeAd.price
+        nativeAdView.priceView?.isHidden = nativeAd.price == nil
         
+        // advertiser
         (nativeAdView.advertiserView as? UILabel)?.text = nativeAd.advertiser
+        nativeAdView.advertiserView?.isHidden = (nativeAd.advertiser == nil)
         
+        // button
         (nativeAdView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
+        nativeAdView.callToActionView?.isHidden = nativeAd.callToAction == nil
         
         // In order for the SDK to process touch events properly, user interaction should be disabled.
         nativeAdView.callToActionView?.isUserInteractionEnabled = false
