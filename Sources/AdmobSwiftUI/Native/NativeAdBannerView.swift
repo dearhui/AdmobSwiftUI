@@ -43,7 +43,7 @@ class NativeAdBannerView: GADNativeAdView {
         bodyLabel.numberOfLines = 2
         bodyLabel.lineBreakMode = .byWordWrapping
         
-        let headerStack = hstack(headlineLabel, adTag, distribution: .fillProportionally)
+        let headerStack = hstack(headlineLabel, adTag)
         let leftStack = stack(headerStack, bodyLabel)
         
         hstack(leftStack, iconImageView, spacing: 8).withMargins(.allSides(8))

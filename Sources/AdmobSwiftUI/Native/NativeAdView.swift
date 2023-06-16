@@ -31,6 +31,7 @@ public struct NativeAdView: UIViewRepresentable {
         (nativeAdView.bodyView as? UILabel)?.text = nativeAd.body
         
         (nativeAdView.iconView as? UIImageView)?.image = nativeAd.icon?.image
+        nativeAdView.iconView?.isHidden = nativeAd.icon == nil
         
         (nativeAdView.starRatingView as? UIImageView)?.image = imageOfStars(from: nativeAd.starRating)
         
