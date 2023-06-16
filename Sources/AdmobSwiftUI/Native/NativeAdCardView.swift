@@ -61,9 +61,11 @@ class NativeAdCardView: GADNativeAdView {
         adTag.layer.cornerRadius = 2
         adTag.clipsToBounds = true
         
-        let starRattingStack = hstack(adTag, starRatingImageView, advertiserLabel, spacing: 4, alignment: .leading)
+        // avoid star width to long add space view
+        let starRattingStack = hstack(adTag, starRatingImageView, advertiserLabel, UIView(), spacing: 4)
         let headlineStarStack = stack(headlineLabel, starRattingStack, spacing: 8)
-        let iconHeadlineStack = hstack(iconImageView, headlineStarStack, spacing: 8)
+        // avoid ad validator when icon hidden add stack and space view
+        let iconHeadlineStack = hstack(stack(iconImageView), headlineStarStack, UIView(), spacing: 8)
         let buttonStack = hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 0, right: 10))
         let bottomStack = stack(iconHeadlineStack, bodyLabel, buttonStack, spacing: 8).withMargins(.allSides(10))
         stack(myMediaView, bottomStack)
