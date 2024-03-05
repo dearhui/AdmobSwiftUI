@@ -19,23 +19,25 @@ public struct NativeAdView: UIViewRepresentable {
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
         
-        // media require
         if let mediaView = nativeAdView.mediaView {
             mediaView.contentMode = .scaleAspectFill
             mediaView.clipsToBounds = true
             
-            let aspectRatio = nativeAd.mediaContent.aspectRatio
-            
-            // remove current height and width
+            // remove constraint
             mediaView.constraints.forEach { constraint in
                 if constraint.firstAttribute == .width || constraint.firstAttribute == .height {
                     mediaView.removeConstraint(constraint)
                 }
             }
             
-            // add new height and width
+            // add aspect ratio, and greater to 120
+            let aspectRatio = nativeAd.mediaContent.aspectRatio
             if aspectRatio != 0 {
-                mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: aspectRatio).isActive = true
+                let widthConstraint = mediaView.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
+                let heightConstraint = mediaView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
+                let aspectRatioConstraint = mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: aspectRatio)
+                
+                NSLayoutConstraint.activate([widthConstraint, heightConstraint, aspectRatioConstraint])
             }
         }
         
