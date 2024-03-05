@@ -20,10 +20,23 @@ public struct NativeAdView: UIViewRepresentable {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
         
         // media require
-        nativeAdView.mediaView?.mediaContent = nativeAd.mediaContent
-        if !nativeAd.mediaContent.hasVideoContent {
-            nativeAdView.mediaView?.contentMode = .scaleAspectFill
-            nativeAdView.mediaView?.clipsToBounds = true
+        if let mediaView = nativeAdView.mediaView {
+            mediaView.contentMode = .scaleAspectFill
+            mediaView.clipsToBounds = true
+            
+            let aspectRatio = nativeAd.mediaContent.aspectRatio
+            
+            // remove current height and width
+            mediaView.constraints.forEach { constraint in
+                if constraint.firstAttribute == .width || constraint.firstAttribute == .height {
+                    mediaView.removeConstraint(constraint)
+                }
+            }
+            
+            // add new height and width
+            if aspectRatio != 0 {
+                mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: aspectRatio).isActive = true
+            }
         }
         
         // headline require

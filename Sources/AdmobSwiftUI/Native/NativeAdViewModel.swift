@@ -14,11 +14,11 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
     private var adLoader: GADAdLoader!
     private var adUnitID: String
     private var lastRequestTime: Date?
-    public var requestInterval: Int = 5 * 60 // 5 minutes
+    public var requestInterval: Int
     private static var cachedAds: [String: GADNativeAd] = [:]
     private static var lastRequestTimes: [String: Date] = [:]
     
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511", requestInterval: Int = 5 * 60) {
+    public init(adUnitID: String = "ca-app-pub-3940256099942544/3986624511", requestInterval: Int = 1 * 60) {
         self.adUnitID = adUnitID
         self.requestInterval = requestInterval
         self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]

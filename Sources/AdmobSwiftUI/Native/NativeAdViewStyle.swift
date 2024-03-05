@@ -12,6 +12,7 @@ public enum NativeAdViewStyle {
     case basic
     case card
     case banner
+    case bigBanner
     
     var view: GADNativeAdView {
         switch self {
@@ -21,6 +22,8 @@ public enum NativeAdViewStyle {
             return NativeAdCardView(frame: .zero)
         case .banner:
             return NativeAdBannerView(frame: .zero)
+        case .bigBanner:
+            return NativeBigAdBannerView(frame: .zero)
         }
     }
     
