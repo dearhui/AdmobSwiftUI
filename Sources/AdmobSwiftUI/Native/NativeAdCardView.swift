@@ -11,16 +11,13 @@ import LBTATools
 
 class NativeAdCardView: GADNativeAdView {
     
-    let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 11, weight: .semibold), textColor: .white)
+    let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 10, weight: .semibold), textColor: .white)
     let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 17, weight: .medium), textColor: .label)
     let myMediaView = GADMediaView()
     let callToActionButton = UIButton(title: "", titleColor: .white, font: .boldSystemFont(ofSize: 18), backgroundColor: UIColor(hex: "#3871E0"), target: nil, action: nil)
     let iconImageView = UIImageView()
     let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
     let starRatingImageView = UIImageView()
-    
-//    let storeLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
-//    let priceLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
     let advertiserLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)
 
     override init(frame: CGRect) {
@@ -55,11 +52,12 @@ class NativeAdCardView: GADNativeAdView {
         starRatingImageView.withWidth(100).withHeight(17)
         self.starRatingView = starRatingImageView
         
-        adTag.withWidth(20)
+        adTag.withWidth(25)
         adTag.textAlignment = .center
         adTag.backgroundColor = .orange
         adTag.layer.cornerRadius = 2
         adTag.clipsToBounds = true
+        adTag.text = NSLocalizedString("AD", bundle: .module, comment: "Ad tag label")
         
         // avoid star width to long add space view
         let starRattingStack = hstack(adTag, starRatingImageView, advertiserLabel, UIView(), spacing: 4)

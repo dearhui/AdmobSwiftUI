@@ -10,12 +10,17 @@ import UIKit
 import LBTATools
 
 class NativeLargeAdBannerView: GADNativeAdView {
-    
-    let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 10, weight: .semibold), textColor: .secondaryLabel, textAlignment: .center)
-    let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 15, weight: .medium), textColor: .label)
-    let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .secondaryLabel)
-    let starRatingImageView = UIImageView()
+    // require
     let myMediaView = GADMediaView()
+    let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 15, weight: .medium), textColor: .label, numberOfLines: 2)
+    let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 10, weight: .semibold), textColor: .secondaryLabel, textAlignment: .center)
+    
+    // for web
+    let advertiserLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .secondaryLabel, numberOfLines: 1)
+    let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .secondaryLabel, numberOfLines: 3)
+    
+    // for app
+    let callToActionButton = UIButton(title: "", titleColor: .label, font: .boldSystemFont(ofSize: 14), backgroundColor: .systemBlue, target: nil, action: nil)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -23,35 +28,34 @@ class NativeLargeAdBannerView: GADNativeAdView {
     }
     
     func setupViews() {
-        self.headlineView = headlineLabel
-        self.bodyView = bodyLabel
-        self.mediaView = myMediaView
-        
         // 設定 media view 的最小尺寸
-        myMediaView.widthAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
-        myMediaView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
+        myMediaView.translatesAutoresizingMaskIntoConstraints = false
+        myMediaView.widthAnchor.constraint(equalTo: myMediaView.heightAnchor, multiplier: 16/9).isActive = true
         myMediaView.contentMode = .scaleAspectFill
         myMediaView.clipsToBounds = true
+        self.mediaView = myMediaView
 
-        headlineLabel.numberOfLines = 2
-        headlineLabel.lineBreakMode = .byWordWrapping
-
-        bodyLabel.numberOfLines = 3
-        bodyLabel.lineBreakMode = .byWordWrapping
-
-        let leftStack = stack(headlineLabel, bodyLabel).withMargins(.init(top: 18, left: 8, bottom: 8, right: 8))
+        self.headlineView = headlineLabel
+        self.advertiserView = advertiserLabel
+        self.bodyView = bodyLabel
+        
+        callToActionButton.isUserInteractionEnabled = false
+        callToActionButton.layer.cornerRadius = 8
+        callToActionButton.clipsToBounds = true
+        self.callToActionView = callToActionButton
+        
+        let leftStack = stack(headlineLabel, advertiserLabel, bodyLabel, callToActionButton).withMargins(.init(top: 8, left: 0, bottom: 8, right: 8))
 
         hstack(myMediaView,leftStack, spacing: 8)
         
+        // AD Tag Label
         addSubview(adTag)
-        
-        // add tag to bottom and trailing
         adTag.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            adTag.topAnchor.constraint(equalTo: topAnchor, constant: 2),
-            adTag.leadingAnchor.constraint(equalTo: myMediaView.trailingAnchor, constant: 2),
+            adTag.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            adTag.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
             adTag.widthAnchor.constraint(greaterThanOrEqualToConstant: 25),
-            adTag.heightAnchor.constraint(equalToConstant: 18)
+            adTag.heightAnchor.constraint(equalToConstant: 15)
         ])
         
         adTag.backgroundColor = .systemFill

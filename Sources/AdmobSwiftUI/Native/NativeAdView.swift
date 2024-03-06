@@ -16,28 +16,36 @@ public struct NativeAdView: UIViewRepresentable {
         return style.view
     }
     
+    func removeCurrentSizeConstraints(from mediaView: UIView) {
+        mediaView.constraints.forEach { constraint in
+            if constraint.firstAttribute == .width || constraint.firstAttribute == .height {
+                mediaView.removeConstraint(constraint)
+            }
+        }
+    }
+    
     public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
         
         if let mediaView = nativeAdView.mediaView {
             mediaView.contentMode = .scaleAspectFill
             mediaView.clipsToBounds = true
-            
-            // remove constraint
-            mediaView.constraints.forEach { constraint in
-                if constraint.firstAttribute == .width || constraint.firstAttribute == .height {
-                    mediaView.removeConstraint(constraint)
-                }
-            }
-            
-            // add aspect ratio, and greater to 120
+
             let aspectRatio = nativeAd.mediaContent.aspectRatio
-            if aspectRatio != 0 {
-                let widthConstraint = mediaView.widthAnchor.constraint(greaterThanOrEqualToConstant: 120)
-                let heightConstraint = mediaView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120)
-                let aspectRatioConstraint = mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: aspectRatio)
-                
-                NSLayoutConstraint.activate([widthConstraint, heightConstraint, aspectRatioConstraint])
+
+            debugPrint("Google aspectRatio: \(aspectRatio), hasVideoContent: \(nativeAd.mediaContent.hasVideoContent)")
+            
+            if style == .largeBanner {
+                removeCurrentSizeConstraints(from: mediaView)
+                if aspectRatio > 0 {
+                    if aspectRatio > 1 {
+                        mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: aspectRatio).isActive = true
+                    } else {
+                        mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: 1).isActive = true
+                    }
+                } else {
+                    mediaView.widthAnchor.constraint(equalTo: mediaView.heightAnchor, multiplier: 16/9).isActive = true
+                }
             }
         }
         
@@ -72,9 +80,11 @@ public struct NativeAdView: UIViewRepresentable {
         // button
         (nativeAdView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
         nativeAdView.callToActionView?.isHidden = nativeAd.callToAction == nil
-        
-        // In order for the SDK to process touch events properly, user interaction should be disabled.
         nativeAdView.callToActionView?.isUserInteractionEnabled = false
+        
+        if style == .largeBanner, let body = nativeAd.body, body.count > 0 {
+            nativeAdView.callToActionView?.isHidden = true
+        }
         
         // Associate the native ad view with the native ad object. This is required to make the ad clickable.
         // Note: this should always be done after populating the ad views.

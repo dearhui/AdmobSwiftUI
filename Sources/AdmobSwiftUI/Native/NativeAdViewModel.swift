@@ -54,11 +54,40 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
         nativeAd.delegate = self
         self.isLoading = false
         NativeAdViewModel.cachedAds[adUnitID] = nativeAd
+        nativeAd.mediaContent.videoController.delegate = self
     }
     
     public func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
         print("\(adLoader) failed with error: \(error.localizedDescription)")
         self.isLoading = false
+    }
+}
+
+extension NativeAdViewModel: GADVideoControllerDelegate {
+    // GADVideoControllerDelegate methods
+    public func videoControllerDidPlayVideo(_ videoController: GADVideoController) {
+        // Implement this method to receive a notification when the video controller
+        // begins playing the ad.
+    }
+    
+    public func videoControllerDidPauseVideo(_ videoController: GADVideoController) {
+        // Implement this method to receive a notification when the video controller
+        // pauses the ad.
+    }
+    
+    public func videoControllerDidEndVideoPlayback(_ videoController: GADVideoController) {
+        // Implement this method to receive a notification when the video controller
+        // stops playing the ad.
+    }
+    
+    public func videoControllerDidMuteVideo(_ videoController: GADVideoController) {
+        // Implement this method to receive a notification when the video controller
+        // mutes the ad.
+    }
+    
+    public func videoControllerDidUnmuteVideo(_ videoController: GADVideoController) {
+        // Implement this method to receive a notification when the video controller
+        // unmutes the ad.
     }
 }
 
