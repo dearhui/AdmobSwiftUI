@@ -21,6 +21,7 @@ public struct BannerView: UIViewControllerRepresentable {
         let bannerViewController = BannerViewController()
         bannerView.adUnitID = adUnitID
         bannerView.rootViewController = bannerViewController
+        bannerView.delegate = context.coordinator
         bannerViewController.view.addSubview(bannerView)
         bannerViewController.delegate = context.coordinator
         
@@ -40,7 +41,7 @@ public struct BannerView: UIViewControllerRepresentable {
         bannerView.load(GADRequest())
     }
     
-    public class Coordinator: NSObject, BannerViewControllerWidthDelegate {
+    public class Coordinator: NSObject, BannerViewControllerWidthDelegate, GADBannerViewDelegate {
         let parent: BannerView
         
         init(_ parent: BannerView) {
@@ -54,27 +55,27 @@ public struct BannerView: UIViewControllerRepresentable {
             parent.viewWidth = width
         }
         
-        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        public func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
             print("\(#function) called")
         }
         
-        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        public func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
             print("\(#function) called")
         }
         
-        func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+        public func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
             print("\(#function) called")
         }
         
-        func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
+        public func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
             print("\(#function) called")
         }
         
-        func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
+        public func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
             print("\(#function) called")
         }
         
-        func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
+        public func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
             print("\(#function) called")
         }
     }
@@ -82,10 +83,6 @@ public struct BannerView: UIViewControllerRepresentable {
 
 struct BannerView_Previews: PreviewProvider {
     static var previews: some View {
-        GeometryReader { geometry in
-            BannerView()
-                .frame(width: geometry.size.width, height: 50)
-                .background(Color.red)
-        }
+        BannerView()
     }
 }
