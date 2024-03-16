@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,11 +11,10 @@
 		1C415EE82A37D10A00D03783 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C415EE72A37D10A00D03783 /* ContentView.swift */; };
 		1C415EEA2A37D10B00D03783 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C415EE92A37D10B00D03783 /* Assets.xcassets */; };
 		1C415EEE2A37D10B00D03783 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C415EED2A37D10B00D03783 /* Preview Assets.xcassets */; };
-		1C415EF92A37D23000D03783 /* AdmobSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1C415EF82A37D23000D03783 /* AdmobSwiftUI */; };
+		1CFF1F812BA5F29A00BD8164 /* AdmobSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1CFF1F802BA5F29A00BD8164 /* AdmobSwiftUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1C149CD82A3AB25100803842 /* AdmobSwiftUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = AdmobSwiftUI; path = ..; sourceTree = "<group>"; };
 		1C415EE22A37D10A00D03783 /* AdmobSwitUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AdmobSwitUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C415EE52A37D10A00D03783 /* AdmobSwitUIDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdmobSwitUIDemoApp.swift; sourceTree = "<group>"; };
 		1C415EE72A37D10A00D03783 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -30,25 +29,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1C415EF92A37D23000D03783 /* AdmobSwiftUI in Frameworks */,
+				1CFF1F812BA5F29A00BD8164 /* AdmobSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1C149CD72A3AB25100803842 /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-				1C149CD82A3AB25100803842 /* AdmobSwiftUI */,
-			);
-			name = Packages;
-			sourceTree = "<group>";
-		};
 		1C415ED92A37D10A00D03783 = {
 			isa = PBXGroup;
 			children = (
-				1C149CD72A3AB25100803842 /* Packages */,
 				1C415EE42A37D10A00D03783 /* AdmobSwitUIDemo */,
 				1C415EE32A37D10A00D03783 /* Products */,
 				1C415EF42A37D1A300D03783 /* Frameworks */,
@@ -108,7 +98,7 @@
 			);
 			name = AdmobSwitUIDemo;
 			packageProductDependencies = (
-				1C415EF82A37D23000D03783 /* AdmobSwiftUI */,
+				1CFF1F802BA5F29A00BD8164 /* AdmobSwiftUI */,
 			);
 			productName = AdmobSwitUIDemo;
 			productReference = 1C415EE22A37D10A00D03783 /* AdmobSwitUIDemo.app */;
@@ -122,7 +112,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					1C415EE12A37D10A00D03783 = {
 						CreatedOnToolsVersion = 14.3;
@@ -138,6 +128,9 @@
 				Base,
 			);
 			mainGroup = 1C415ED92A37D10A00D03783;
+			packageReferences = (
+				1CFF1F7F2BA5F29A00BD8164 /* XCLocalSwiftPackageReference ".." */,
+			);
 			productRefGroup = 1C415EE32A37D10A00D03783 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -205,9 +198,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -263,9 +258,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -289,6 +286,7 @@
 				CODE_SIGN_ENTITLEMENTS = AdmobSwitUIDemo/AdmobSwitUIDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"AdmobSwitUIDemo/Preview Content\"";
 				DEVELOPMENT_TEAM = M7K8VSF986;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -331,6 +329,7 @@
 				CODE_SIGN_ENTITLEMENTS = AdmobSwitUIDemo/AdmobSwitUIDemo.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"AdmobSwitUIDemo/Preview Content\"";
 				DEVELOPMENT_TEAM = M7K8VSF986;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -388,8 +387,15 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		1CFF1F7F2BA5F29A00BD8164 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		1C415EF82A37D23000D03783 /* AdmobSwiftUI */ = {
+		1CFF1F802BA5F29A00BD8164 /* AdmobSwiftUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AdmobSwiftUI;
 		};
