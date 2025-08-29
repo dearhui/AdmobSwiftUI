@@ -14,7 +14,7 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
     private let adUnitID: String
     private let InterstitialID: String
     
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/1712485313", InterstitialID: String = "ca-app-pub-3940256099942544/6978759866") {
+    public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.rewarded, InterstitialID: String = AdmobSwiftUI.AdUnitIDs.rewardedInterstitial) {
         self.adUnitID = adUnitID
         self.InterstitialID = InterstitialID
     }

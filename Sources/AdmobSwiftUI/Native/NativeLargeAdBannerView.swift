@@ -7,7 +7,6 @@
 
 import GoogleMobileAds
 import UIKit
-import LBTATools
 
 class NativeLargeAdBannerView: GADNativeAdView {
     // require
@@ -44,9 +43,18 @@ class NativeLargeAdBannerView: GADNativeAdView {
         callToActionButton.clipsToBounds = true
         self.callToActionView = callToActionButton
         
-        let leftStack = stack(headlineLabel, advertiserLabel, bodyLabel, callToActionButton).withMargins(.init(top: 8, left: 0, bottom: 8, right: 8))
+        let leftStack = stack(headlineLabel, advertiserLabel, bodyLabel, callToActionButton).withMargins(UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 8))
 
-        hstack(myMediaView,leftStack, spacing: 8)
+        let mainStack = hstack([myMediaView, leftStack], spacing: 8)
+        addSubview(mainStack)
+        
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainStack.topAnchor.constraint(equalTo: topAnchor),
+            mainStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
         
         // AD Tag Label
         addSubview(adTag)

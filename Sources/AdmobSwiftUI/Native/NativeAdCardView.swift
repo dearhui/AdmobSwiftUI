@@ -7,7 +7,6 @@
 
 import GoogleMobileAds
 import UIKit
-import LBTATools
 
 class NativeAdCardView: GADNativeAdView {
     
@@ -60,13 +59,23 @@ class NativeAdCardView: GADNativeAdView {
         adTag.text = NSLocalizedString("AD", bundle: .module, comment: "Ad tag label")
         
         // avoid star width to long add space view
-        let starRattingStack = hstack(adTag, starRatingImageView, advertiserLabel, UIView(), spacing: 4)
+        let starRattingStack = hstack([adTag, starRatingImageView, advertiserLabel, UIView()], spacing: 4)
         let headlineStarStack = stack(headlineLabel, starRattingStack, spacing: 8)
         // avoid ad validator when icon hidden add stack and space view
-        let iconHeadlineStack = hstack(stack(iconImageView), headlineStarStack, UIView(), spacing: 8)
-        let buttonStack = hstack(callToActionButton.withHeight(39)).withMargins(.init(top: 0, left: 10, bottom: 0, right: 10))
-        let bottomStack = stack(iconHeadlineStack, bodyLabel, buttonStack, spacing: 8).withMargins(.allSides(10))
-        stack(myMediaView, bottomStack)
+        let iconStack = stack(iconImageView)
+        let iconHeadlineStack = hstack([iconStack, headlineStarStack, UIView()], spacing: 8)
+        let buttonContainer = hstack([callToActionButton.withHeight(39)]).withMargins(UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10))
+        let bottomStack = stack(iconHeadlineStack, bodyLabel, buttonContainer, spacing: 8).withMargins(.allSides(10))
+        let mainStack = stack(myMediaView, bottomStack)
+        
+        addSubview(mainStack)
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainStack.topAnchor.constraint(equalTo: topAnchor),
+            mainStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
     
     required init?(coder aDecoder: NSCoder) {

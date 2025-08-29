@@ -6,13 +6,17 @@
 //
 
 import SwiftUI
-import GoogleMobileAds
+import AdmobSwiftUI
 
 @main
 struct AdmobSwitUIDemoApp: App {
     
     init() {
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        // 使用新的初始化方法，啟用調試模式
+        let config = AdmobSwiftUI.Configuration(
+            enableDebugMode: true  // 啟用測試廣告
+        )
+        AdmobSwiftUI.initialize(with: config)
     }
     
     var body: some Scene {

@@ -1,18 +1,11 @@
 # AdmobSwiftUI
 
-AdmobSwiftUI is a Swift package that integrates Admob ads into SwiftUI. This package implements several ways to use Admob in SwiftUI:
-
-- Banner
-- Interstitial
-- App Open
-- Reward
-- Reward Interstitial
-- Native
+AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI applications. It supports multiple ad formats: Banner, Interstitial, App Open, Rewarded, Rewarded Interstitial, and Native ads.
 
 ## Requirements
 
 - iOS 14.0+
-- Google Mobile Ads SDK 10.6.0+
+- Google Mobile Ads SDK 11.2.0+
 
 ## Installation
 
@@ -21,19 +14,33 @@ You can install AdmobSwiftUI using Swift Package Manager by adding the following
 ```
 https://github.com/dearhui/AdmobSwiftUI.git
 ```
-Before building the project, make sure you've added the -ObjC flag to the "Other Linker Flags" in the "Build Settings".
 
 ## Configuration
-To use AdmobSwiftUI, you need to add some key values to your Info.plist as required by the Google Mobile Ads SDK. Please refer to the SDK documentation for more details.
 
-Additionally, you need to start the Google Mobile Ads SDK at the start of your app. Add the following code to your @main struct:
+### 1. Info.plist Setup
+Add the required keys to your Info.plist as specified in the Google Mobile Ads SDK documentation.
+
+### 2. Initialize AdmobSwiftUI
+Initialize AdmobSwiftUI in your App's init method:
 
 ```swift
+import SwiftUI
+import AdmobSwiftUI
+
 @main
 struct AdmobSwitUIDemoApp: App {
     
     init() {
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        // Basic initialization
+        AdmobSwiftUI.initialize()
+        
+        // Or with custom configuration
+        let config = AdmobSwiftUI.Configuration(
+            testDeviceIdentifiers: ["your-test-device-id"],
+            maxAdContentRating: .general,
+            enableDebugMode: true  // Enable for development
+        )
+        AdmobSwiftUI.initialize(with: config)
     }
     
     var body: some Scene {
@@ -44,66 +51,81 @@ struct AdmobSwitUIDemoApp: App {
 }
 ```
 
-## Usage
+### 3. Build Settings
+Add the `-ObjC` flag to "Other Linker Flags" in your Build Settings.
 
-First, you need to import AdmobSwiftUI in your SwiftUI file and initialize all the ad components you need.
+## Ad Unit ID Management
+
+AdmobSwiftUI provides a centralized ad unit ID management system that automatically switches between test and production environments:
+
+```swift
+import AdmobSwiftUI
+
+// Use centrally managed ad unit IDs
+let bannerID = AdmobSwiftUI.AdUnitIDs.banner        // Automatically selects test or production ID
+let interstitialID = AdmobSwiftUI.AdUnitIDs.interstitial
+
+// Use test ad unit IDs directly
+let testBannerID = AdmobSwiftUI.AdUnitIDs.testBanner
+
+// Check current configuration
+AdmobSwiftUI.AdUnitIDs.printCurrentConfiguration()
+```
+
+**Automatic Environment Switching:**
+- 🧪 **Debug Mode**: Automatically uses test ad unit IDs
+- 🚀 **Release Mode**: Automatically uses production ad unit IDs
+
+## Usage Examples
+
+### Banner Ads
 
 ```swift
 import SwiftUI
 import AdmobSwiftUI
 
 struct ContentView: View {
-    @StateObject private var nativeViewModel = NativeAdViewModel()
-    private let adViewControllerRepresentable = AdViewControllerRepresentable()
-    private let adCoordinator = InterstitialAdCoordinator()
-    private let rewardCoordinator = RewardedAdCoordinator()
+    var body: some View {
+        VStack {
+            BannerView()
+                .frame(height: 50)
+        }
+    }
+}
 ```
 
-Then, you can include Banner ads in your view, or show Interstitial or Reward ads when the user performs a certain action.
+### Interstitial & App Open Ads
 
 ```swift
+struct ContentView: View {
+    private let adViewControllerRepresentable = AdViewControllerRepresentable()
+    private let adCoordinator = InterstitialAdCoordinator()
+    
     var body: some View {
-        ScrollView {
-            VStack (spacing: 20) {
+        VStack {
+            Button("Show Interstitial") {
+                Task {
+                    do {
+                        let ad = try await adCoordinator.loadInterstitialAd()
+                        ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                    } catch {
+                        print("Failed to show interstitial: \(error)")
+                    }
+                }
+            }
             
-                Button("Show App Open") {
-                    Task {
-                        do {
-                            let ad = try await adCoordinator.loadAppOpenAd()
-                            ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
-                        } catch {
-                            print(error.localizedDescription)
-                        }
+            Button("Show App Open") {
+                Task {
+                    do {
+                        let ad = try await adCoordinator.loadAppOpenAd()
+                        ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                    } catch {
+                        print("Failed to show app open: \(error)")
                     }
                 }
-                
-                Button("Show reward InterstitialAd") {
-                    Task {
-                        do {
-                            let reward = try await rewardCoordinator.loadInterstitialAd()
-                            reward.present(fromRootViewController: adViewControllerRepresentable.viewController) {
-                                print("Reward amount: \(reward.adReward.amount)")
-                            }
-                        } catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
-                
-                BannerView()
-                    .frame(height: 50)
-                
-                NativeAdView(nativeViewModel: nativeViewModel)
-                    .frame(height: 300) // 250 ~ 300
-                    .onAppear {
-                        nativeViewModel.refreshAd()
-                    }
             }
         }
-        .padding()
         .background {
-            // Add the adViewControllerRepresentable to the background so it
-            // doesn't influence the placement of other views in the view hierarchy.
             adViewControllerRepresentable
                 .frame(width: .zero, height: .zero)
         }
@@ -111,13 +133,72 @@ Then, you can include Banner ads in your view, or show Interstitial or Reward ad
 }
 ```
 
-## Note
+### Rewarded Ads
 
-This package uses Google AdMob, make sure your project has imported and configured the Google Mobile Ads SDK properly.
+```swift
+struct ContentView: View {
+    private let adViewControllerRepresentable = AdViewControllerRepresentable()
+    private let rewardCoordinator = RewardedAdCoordinator()
+    
+    var body: some View {
+        Button("Show Rewarded Ad") {
+            Task {
+                do {
+                    let reward = try await rewardCoordinator.loadRewardedAd()
+                    reward.present(fromRootViewController: adViewControllerRepresentable.viewController) {
+                        print("User earned reward: \(reward.adReward.amount)")
+                    }
+                } catch {
+                    print("Failed to show rewarded ad: \(error)")
+                }
+            }
+        }
+        .background {
+            adViewControllerRepresentable
+                .frame(width: .zero, height: .zero)
+        }
+    }
+}
+```
 
-## Contribution
+### Native Ads
 
-Any form of contribution is welcome, including feature requests, bug reports, or pull requests.
+```swift
+struct ContentView: View {
+    @StateObject private var nativeViewModel = NativeAdViewModel()
+    
+    var body: some View {
+        VStack {
+            NativeAdView(nativeViewModel: nativeViewModel)
+                .frame(height: 300)
+                .onAppear {
+                    nativeViewModel.refreshAd()
+                }
+        }
+    }
+}
+```
+
+## Error Handling
+
+AdmobSwiftUI provides unified error handling through `AdmobSwiftUIError`:
+
+```swift
+enum AdmobSwiftUIError: Error {
+    case adNotLoaded
+    case adLoadFailed(Error)
+    case presentationFailed(String)
+    case sdkNotInitialized
+}
+```
+
+## Notes
+
+This package uses Google AdMob. Ensure your project is properly configured with:
+1. Google Mobile Ads SDK integration
+2. Info.plist configurations as per Google's documentation
+3. `-ObjC` linker flag in build settings
+4. Proper ad unit IDs (replace test IDs in production)
 
 ## License
 

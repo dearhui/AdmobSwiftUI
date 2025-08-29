@@ -1,15 +1,6 @@
 {
-  "originHash" : "47444872f92492e90ce4c162a2f7728300d081aa0ebc608437c2fcab58789f5a",
+  "originHash" : "437a992731dc872a39a439f986e7dbc46a18803ae0ab672c9f6384c47f2cd6e6",
   "pins" : [
-    {
-      "identity" : "lbtatools",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/bhlvoong/LBTATools",
-      "state" : {
-        "revision" : "dce147bfbdc0417a4b430ec220c088629e9dc81d",
-        "version" : "1.0.17"
-      }
-    },
     {
       "identity" : "swift-package-manager-google-mobile-ads",
       "kind" : "remoteSourceControl",

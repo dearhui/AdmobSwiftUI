@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(swift build)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(swift build:*)",
+      "Bash(swift test)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

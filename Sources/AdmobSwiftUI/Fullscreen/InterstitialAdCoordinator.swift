@@ -14,7 +14,7 @@ public class InterstitialAdCoordinator: NSObject, GADFullScreenContentDelegate {
     private let appOpenadUnitID: String
     private let adUnitID: String
     
-    public init(appOpenadUnitID: String = "ca-app-pub-3940256099942544/5662855259", adUnitID: String = "ca-app-pub-3940256099942544/4411468910") {
+    public init(appOpenadUnitID: String = AdmobSwiftUI.AdUnitIDs.appOpen, adUnitID: String = AdmobSwiftUI.AdUnitIDs.interstitial) {
         self.adUnitID = adUnitID
         self.appOpenadUnitID = appOpenadUnitID
     }

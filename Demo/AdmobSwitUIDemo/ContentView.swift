@@ -9,7 +9,8 @@ import SwiftUI
 import AdmobSwiftUI
 
 struct ContentView: View {
-    @StateObject private var nativeViewModel = NativeAdViewModel(requestInterval: 1)
+    // 使用預設的 Google 測試廣告 ID
+    @StateObject private var nativeViewModel = NativeAdViewModel(requestInterval: 60)
     private let adViewControllerRepresentable = AdViewControllerRepresentable()
     private let adCoordinator = InterstitialAdCoordinator()
     private let rewardCoordinator = RewardedAdCoordinator()
@@ -22,7 +23,7 @@ struct ContentView: View {
                 Button("Show InterstitialAd") {
                     Task {
                         do {
-                            let ad = try await adCoordinator.loadAppOpenAd()
+                            let ad = try await adCoordinator.loadInterstitialAd()
                             ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
                         } catch {
                             print(error.localizedDescription)
@@ -33,7 +34,7 @@ struct ContentView: View {
                 Button("show reward") {
                     Task {
                         do {
-                            let reward = try await rewardCoordinator.loadInterstitialAd()
+                            let reward = try await rewardCoordinator.loadRewardedAd()
                             reward.present(fromRootViewController: adViewControllerRepresentable.viewController) {
                                 print("Reward amount: \(reward.adReward.amount)")
                             }
@@ -43,8 +44,23 @@ struct ContentView: View {
                     }
                 }
                 
+                Button("Show App Open") {
+                    Task {
+                        do {
+                            let ad = try await adCoordinator.loadAppOpenAd()
+                            ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                        } catch {
+                            print(error.localizedDescription)
+                        }
+                    }
+                }
+                
                 Button("reload native") {
                     nativeViewModel.refreshAd()
+                }
+                
+                Button("show ad config") {
+                    AdmobSwiftUI.AdUnitIDs.printCurrentConfiguration()
                 }
                 
                 Button("hidden native") {

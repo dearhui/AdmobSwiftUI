@@ -7,7 +7,6 @@
 
 import GoogleMobileAds
 import UIKit
-import LBTATools
 
 class NativeAdBannerView: GADNativeAdView {
     
@@ -43,10 +42,19 @@ class NativeAdBannerView: GADNativeAdView {
         bodyLabel.numberOfLines = 2
         bodyLabel.lineBreakMode = .byWordWrapping
         
-        let headerStack = hstack(headlineLabel, adTag)
+        let headerStack = hstack([headlineLabel, adTag])
         let leftStack = stack(headerStack, bodyLabel)
         
-        hstack(leftStack, iconImageView, spacing: 8).withMargins(.allSides(8))
+        let mainStack = hstack([leftStack, iconImageView], spacing: 8).withMargins(.allSides(8))
+        addSubview(mainStack)
+        
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainStack.topAnchor.constraint(equalTo: topAnchor),
+            mainStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
     
     required init?(coder aDecoder: NSCoder) {

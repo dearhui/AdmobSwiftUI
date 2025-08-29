@@ -13,7 +13,7 @@ public struct BannerView: UIViewControllerRepresentable {
     private let bannerView = GADBannerView()
     private let adUnitID: String
     
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/2934735716") {
+    public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.banner) {
         self.adUnitID = adUnitID
     }
     
