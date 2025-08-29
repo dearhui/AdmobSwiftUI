@@ -15,14 +15,21 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
     private var adUnitID: String
     private var lastRequestTime: Date?
     public var requestInterval: Int
+    private static let cacheQueue = DispatchQueue(label: "com.admobswiftui.native.cache", attributes: .concurrent)
+    private static let maxCacheSize = 10
     private static var cachedAds: [String: GoogleMobileAds.NativeAd] = [:]
     private static var lastRequestTimes: [String: Date] = [:]
     
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.native, requestInterval: Int = 1 * 60) {
         self.adUnitID = adUnitID
         self.requestInterval = requestInterval
-        self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
-        self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
+        super.init()
+        
+        // Get cached ad safely
+        NativeAdViewModel.cacheQueue.sync {
+            self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
+            self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
+        }
     }
     
     public func refreshAd() {
@@ -53,13 +60,36 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
         self.nativeAd = nativeAd
         nativeAd.delegate = self
         self.isLoading = false
-        NativeAdViewModel.cachedAds[adUnitID] = nativeAd
+        
+        // Cache the ad safely with size management
+        Self.setCachedAd(nativeAd, for: adUnitID)
         nativeAd.mediaContent.videoController.delegate = self
     }
     
     public func adLoader(_ adLoader: GoogleMobileAds.AdLoader, didFailToReceiveAdWithError error: Error) {
         print("\(adLoader) failed with error: \(error.localizedDescription)")
         self.isLoading = false
+    }
+    
+    // MARK: - Cache Management
+    private static func setCachedAd(_ ad: GoogleMobileAds.NativeAd, for key: String) {
+        cacheQueue.async(flags: .barrier) {
+            // Clean cache if it's getting too large
+            cleanupCacheIfNeeded()
+            
+            cachedAds[key] = ad
+            lastRequestTimes[key] = Date()
+        }
+    }
+    
+    private static func cleanupCacheIfNeeded() {
+        guard cachedAds.count >= maxCacheSize else { return }
+        
+        // Remove oldest cached ad
+        if let oldestKey = lastRequestTimes.min(by: { $0.value < $1.value })?.key {
+            cachedAds.removeValue(forKey: oldestKey)
+            lastRequestTimes.removeValue(forKey: oldestKey)
+        }
     }
 }
 

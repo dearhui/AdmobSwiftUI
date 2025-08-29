@@ -7,6 +7,7 @@
 
 import GoogleMobileAds
 import SwiftUI
+import UIKit
 
 public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
     private var appOpenAd: GoogleMobileAds.AppOpenAd?
@@ -14,6 +15,15 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     private var loadTime: Date?
     
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.appOpen) {
+        // Validate ad unit ID
+        guard !adUnitID.isEmpty else {
+            fatalError("AdmobSwiftUI: Ad unit ID cannot be empty")
+        }
+        
+        if adUnitID.hasPrefix("your-") {
+            AdmobSwiftUI.log("Warning: Using placeholder ad unit ID. Replace with your actual ad unit ID before release.", level: .warning)
+        }
+        
         self.adUnitID = adUnitID
         super.init()
     }
@@ -30,6 +40,13 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
                 print("Failed to load app open ad: \(error?.localizedDescription ?? "Unknown error")")
             }
         })
+    }
+    
+    // MARK: - Async Ad Loading
+    public typealias AdType = GoogleMobileAds.AppOpenAd
+    
+    public func loadAdAsync() async throws -> GoogleMobileAds.AppOpenAd {
+        return try await loadAppOpenAd()
     }
     
     // MARK: - Async/await API
@@ -50,10 +67,13 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     }
     
     // MARK: - Ad Presentation
-    public func showAd(from viewController: UIViewController) {
-        guard let appOpenAd = appOpenAd, !isAdExpired else {
-            print("App open ad wasn't ready or has expired")
-            return
+    public func showAd(from viewController: UIViewController) throws {
+        guard let appOpenAd = appOpenAd else {
+            throw AdmobSwiftUIError.adNotLoaded
+        }
+        
+        guard !isAdExpired else {
+            throw AdmobSwiftUIError.adExpired
         }
         
         appOpenAd.present(from: viewController)
@@ -71,6 +91,7 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     }
     
     private func clean() {
+        appOpenAd?.fullScreenContentDelegate = nil
         appOpenAd = nil
         loadTime = nil
     }

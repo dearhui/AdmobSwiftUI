@@ -20,14 +20,22 @@ public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenCont
     public func loadAd() {
         clean()
         GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-            self.interstitial = ad
-            self.interstitial?.fullScreenContentDelegate = self
+            if let error = error {
+                AdmobSwiftUI.log("Failed to load interstitial ad: \(error.localizedDescription)", level: .error)
+                return
+            }
+            
+            if let ad = ad {
+                self.interstitial = ad
+                ad.fullScreenContentDelegate = self
+                AdmobSwiftUI.log("Interstitial ad loaded successfully", level: .debug)
+            }
         })
     }
     
-    public func showAd(from viewController: UIViewController) {
+    public func showAd(from viewController: UIViewController) throws {
         guard let interstitial = interstitial else {
-            return print("Ad wasn't ready")
+            throw AdmobSwiftUIError.adNotLoaded
         }
         
         interstitial.present(from: viewController)
@@ -51,6 +59,7 @@ public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenCont
     
     
     private func clean() {
+        interstitial?.fullScreenContentDelegate = nil
         interstitial = nil
     }
     

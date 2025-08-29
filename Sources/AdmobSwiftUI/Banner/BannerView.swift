@@ -10,6 +10,7 @@ import GoogleMobileAds
 
 public struct BannerView: UIViewControllerRepresentable {
     @State private var viewWidth: CGFloat = .zero
+    @State private var currentAdSize: AdSize?
     private let bannerView = GoogleMobileAds.BannerView()
     private let adUnitID: String
     
@@ -33,12 +34,18 @@ public struct BannerView: UIViewControllerRepresentable {
     }
     
     public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
-        print("size: \(viewWidth)")
+        AdmobSwiftUI.log("Banner view width updated: \(viewWidth)", level: .debug)
         guard viewWidth != .zero else { return }
         
-        // Request a banner ad with the updated viewWidth.
-        bannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
-        bannerView.load(GoogleMobileAds.Request())
+        // Only reload if size actually changed
+        let newAdSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
+        if currentAdSize == nil || !isAdSizeEqualToSize(size1: currentAdSize!, size2: newAdSize) {
+            DispatchQueue.main.async {
+                self.currentAdSize = newAdSize
+            }
+            bannerView.adSize = newAdSize
+            bannerView.load(GoogleMobileAds.Request())
+        }
     }
     
     public class Coordinator: NSObject, BannerViewControllerWidthDelegate, GoogleMobileAds.BannerViewDelegate {
@@ -52,31 +59,33 @@ public struct BannerView: UIViewControllerRepresentable {
         
         func bannerViewController(_ bannerViewController: BannerViewController, didUpdate width: CGFloat) {
             // Pass the viewWidth from Coordinator to BannerView.
-            parent.viewWidth = width
+            DispatchQueue.main.async {
+                self.parent.viewWidth = width
+            }
         }
         
         public func bannerViewDidReceiveAd(_ bannerView: GoogleMobileAds.BannerView) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad received successfully", level: .debug)
         }
         
         public func bannerView(_ bannerView: GoogleMobileAds.BannerView, didFailToReceiveAdWithError error: Error) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad failed to load: \(error.localizedDescription)", level: .error)
         }
         
         public func bannerViewDidRecordImpression(_ bannerView: GoogleMobileAds.BannerView) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad impression recorded", level: .debug)
         }
         
         public func bannerViewWillPresentScreen(_ bannerView: GoogleMobileAds.BannerView) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad will present screen", level: .debug)
         }
         
         public func bannerViewWillDismissScreen(_ bannerView: GoogleMobileAds.BannerView) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad will dismiss screen", level: .debug)
         }
         
         public func bannerViewDidDismissScreen(_ bannerView: GoogleMobileAds.BannerView) {
-            print("\(#function) called")
+            AdmobSwiftUI.log("Banner ad did dismiss screen", level: .debug)
         }
     }
 }

@@ -197,6 +197,8 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
     case adLoadFailed(Error)
     case presentationFailed(String)
     case sdkNotInitialized
+    case adExpired
+    case invalidConfiguration(String)
     
     public var errorDescription: String? {
         switch self {
@@ -208,6 +210,37 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
             return "Failed to present ad: \(reason)"
         case .sdkNotInitialized:
             return "Google Mobile Ads SDK is not initialized"
+        case .adExpired:
+            return "The loaded ad has expired and cannot be shown"
+        case .invalidConfiguration(let message):
+            return "Invalid configuration: \(message)"
         }
+    }
+}
+
+/// Logging levels for AdmobSwiftUI
+public enum AdmobSwiftUILogLevel: Int {
+    case none = 0
+    case error = 1
+    case warning = 2
+    case info = 3
+    case debug = 4
+}
+
+// MARK: - Logging Helper
+extension AdmobSwiftUI {
+    /// Current log level (default: .error for release, .debug for debug)
+    public static var logLevel: AdmobSwiftUILogLevel = {
+        #if DEBUG
+        return .debug
+        #else
+        return .error
+        #endif
+    }()
+    
+    /// Internal logging method
+    internal static func log(_ message: String, level: AdmobSwiftUILogLevel = .info) {
+        guard logLevel.rawValue >= level.rawValue else { return }
+        print("AdmobSwiftUI [\(level)]: \(message)")
     }
 }

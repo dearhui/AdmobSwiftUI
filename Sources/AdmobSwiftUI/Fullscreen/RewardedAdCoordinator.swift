@@ -58,6 +58,8 @@ public class RewardedAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentD
     }
     
     private func clean() {
+        rewardedInterstitialAd?.fullScreenContentDelegate = nil
+        rewardedAd?.fullScreenContentDelegate = nil
         self.rewardedInterstitialAd = nil
         self.rewardedAd = nil
     }
