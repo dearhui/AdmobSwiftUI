@@ -28,11 +28,11 @@ public struct AdmobSwiftUI {
     /// Initialize AdmobSwiftUI with configuration
     /// - Parameter configuration: AdMob configuration settings
     public static func initialize(with configuration: Configuration = Configuration()) {
-        let requestConfiguration = GADMobileAds.sharedInstance().requestConfiguration
+        let requestConfiguration = MobileAds.shared.requestConfiguration
         
         // Configure test devices
         if configuration.enableDebugMode {
-            requestConfiguration.testDeviceIdentifiers = [GADSimulatorID]
+            requestConfiguration.testDeviceIdentifiers = ["ca-app-pub-3940256099942544~1458002511"]
         } else if let testDevices = configuration.testDeviceIdentifiers {
             requestConfiguration.testDeviceIdentifiers = testDevices
         }
@@ -42,14 +42,14 @@ public struct AdmobSwiftUI {
             requestConfiguration.maxAdContentRating = maxRating
         }
         
-        GADMobileAds.sharedInstance().start { status in
+        MobileAds.shared.start { status in
             print("AdmobSwiftUI: Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)")
         }
     }
     
     /// Check if Google Mobile Ads SDK is initialized
     public static var isInitialized: Bool {
-        return GADMobileAds.sharedInstance().initializationStatus != nil
+        return MobileAds.shared.initializationStatus.adapterStatusesByClassName.count > 0
     }
     
     // MARK: - Ad Unit IDs Management

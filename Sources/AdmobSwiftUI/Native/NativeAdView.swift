@@ -2,7 +2,7 @@ import GoogleMobileAds
 import SwiftUI
 
 public struct NativeAdView: UIViewRepresentable {
-    public typealias UIViewType = GADNativeAdView
+    public typealias UIViewType = GoogleMobileAds.NativeAdView
     
     @ObservedObject var nativeViewModel: NativeAdViewModel
     var style: NativeAdViewStyle
@@ -12,7 +12,7 @@ public struct NativeAdView: UIViewRepresentable {
         self.style = style
     }
     
-    public func makeUIView(context: Context) -> GADNativeAdView {
+    public func makeUIView(context: Context) -> GoogleMobileAds.NativeAdView {
         return style.view
     }
     
@@ -24,7 +24,7 @@ public struct NativeAdView: UIViewRepresentable {
         }
     }
     
-    public func updateUIView(_ nativeAdView: GADNativeAdView, context: Context) {
+    public func updateUIView(_ nativeAdView: GoogleMobileAds.NativeAdView, context: Context) {
         guard let nativeAd = nativeViewModel.nativeAd else { return }
         
         if let mediaView = nativeAdView.mediaView {

@@ -8,7 +8,12 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(swift build:*)",
-      "Bash(swift test)"
+      "Bash(swift test)",
+      "Bash(git checkout:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(swift package:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

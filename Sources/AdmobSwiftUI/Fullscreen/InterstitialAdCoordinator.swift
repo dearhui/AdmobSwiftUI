@@ -8,23 +8,21 @@
 import GoogleMobileAds
 import SwiftUI
 
-public class InterstitialAdCoordinator: NSObject, GADFullScreenContentDelegate {
-    private var appOpenAd: GADAppOpenAd?
-    private var interstitial: GADInterstitialAd?
-    private let appOpenadUnitID: String
+public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
+    private var interstitial: GoogleMobileAds.InterstitialAd?
     private let adUnitID: String
     
-    public init(appOpenadUnitID: String = AdmobSwiftUI.AdUnitIDs.appOpen, adUnitID: String = AdmobSwiftUI.AdUnitIDs.interstitial) {
+    public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.interstitial) {
         self.adUnitID = adUnitID
-        self.appOpenadUnitID = appOpenadUnitID
+        super.init()
     }
     
     public func loadAd() {
         clean()
-        GADInterstitialAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
+        GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
             self.interstitial = ad
             self.interstitial?.fullScreenContentDelegate = self
-        }
+        })
     }
     
     public func showAd(from viewController: UIViewController) {
@@ -32,72 +30,84 @@ public class InterstitialAdCoordinator: NSObject, GADFullScreenContentDelegate {
             return print("Ad wasn't ready")
         }
         
-        interstitial.present(fromRootViewController: viewController)
+        interstitial.present(from: viewController)
     }
     
     // MARK: - Async/await
-    public func loadInterstitialAd() async throws -> GADInterstitialAd {
+    public func loadInterstitialAd() async throws -> GoogleMobileAds.InterstitialAd {
         clean()
         
         return try await withCheckedThrowingContinuation { continuation in
-            GADInterstitialAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
+            GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else if let ad = ad {
                     ad.fullScreenContentDelegate = self
                     continuation.resume(returning: ad)
                 }
-            }
+            })
         }
     }
     
-    public func loadAppOpenAd() async throws -> GADAppOpenAd {
-        clean()
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            GADAppOpenAd.load(withAdUnitID: appOpenadUnitID, request: GADRequest()) { ad, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let ad = ad {
-                    ad.fullScreenContentDelegate = self
-                    continuation.resume(returning: ad)
-                }
-            }
-        }
-    }
     
     private func clean() {
         interstitial = nil
-        appOpenAd = nil
     }
     
     // MARK: - GADFullScreenContentDelegate methods
-    public func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    public func adDidDismissFullScreenContent(_ ad: GoogleMobileAds.FullScreenPresentingAd) {
         clean()
     }
 }
 
-// Use
+// MARK: - Usage Example
 /*
 struct SampleView: View {
     private let adViewControllerRepresentable = AdViewControllerRepresentable()
-    private let adCoordinator = InterstitialAdCoordinator()
+    private let interstitialAdCoordinator = InterstitialAdCoordinator()
     
     var body: some View {
-        Text("Hello, World!")
-            .background {
-                // Add the adViewControllerRepresentable to the background so it
-                // does not influence the placement of other views in the view hierarchy.
-                adViewControllerRepresentable
-                    .frame(width: .zero, height: .zero)
+        VStack {
+            Text("Content View")
+            
+            Button("Load Interstitial Ad") {
+                interstitialAdCoordinator.loadAd()
             }
-        
-        Button("Load an ad") {
-            adCoordinator.loadAd()
+            
+            Button("Show Interstitial Ad") {
+                interstitialAdCoordinator.showAd(from: adViewControllerRepresentable.viewController)
+            }
         }
-        
-        Button("Watch an ad") {
-            adCoordinator.showAd(from: adViewControllerRepresentable.viewController)
+        .background {
+            // Add the adViewControllerRepresentable to the background so it
+            // does not influence the placement of other views in the view hierarchy.
+            adViewControllerRepresentable
+                .frame(width: .zero, height: .zero)
+        }
+    }
+}
+
+// Async/await usage example
+struct AsyncSampleView: View {
+    private let adViewControllerRepresentable = AdViewControllerRepresentable()
+    private let interstitialAdCoordinator = InterstitialAdCoordinator()
+    
+    var body: some View {
+        VStack {
+            Button("Load & Show Interstitial Ad") {
+                Task {
+                    do {
+                        let ad = try await interstitialAdCoordinator.loadInterstitialAd()
+                        ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                    } catch {
+                        print("Failed to load interstitial ad: \(error)")
+                    }
+                }
+            }
+        }
+        .background {
+            adViewControllerRepresentable
+                .frame(width: .zero, height: .zero)
         }
     }
 }

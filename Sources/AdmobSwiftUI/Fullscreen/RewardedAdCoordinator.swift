@@ -8,9 +8,9 @@
 import SwiftUI
 import GoogleMobileAds
 
-public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
-    private var rewardedInterstitialAd: GADRewardedInterstitialAd?
-    private var rewardedAd: GADRewardedAd?
+public class RewardedAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
+    private var rewardedInterstitialAd: GoogleMobileAds.RewardedInterstitialAd?
+    private var rewardedAd: GoogleMobileAds.RewardedAd?
     private let adUnitID: String
     private let InterstitialID: String
     
@@ -21,39 +21,39 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
     
     public func loadAd() {
         clean()
-        GADRewardedAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
+        GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
             self.rewardedAd = ad
             self.rewardedAd?.fullScreenContentDelegate = self
-        }
+        })
     }
     
     // MARK: - async/await
     
-    public func loadInterstitialAd() async throws -> GADRewardedInterstitialAd {
+    public func loadInterstitialAd() async throws -> GoogleMobileAds.RewardedInterstitialAd {
         clean()
         return try await withCheckedThrowingContinuation { continuation in
-            GADRewardedInterstitialAd.load(withAdUnitID: InterstitialID, request: GADRequest()) { ad, error in
+            GoogleMobileAds.RewardedInterstitialAd.load(with: InterstitialID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else if let ad = ad {
                     ad.fullScreenContentDelegate = self
                     continuation.resume(returning: ad)
                 }
-            }
+            })
         }
     }
 
-    public func loadRewardedAd() async throws -> GADRewardedAd {
+    public func loadRewardedAd() async throws -> GoogleMobileAds.RewardedAd {
         clean()
         return try await withCheckedThrowingContinuation { continuation in
-            GADRewardedAd.load(withAdUnitID: adUnitID, request: GADRequest()) { ad, error in
+            GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
                 if let error = error {
                     continuation.resume(throwing: error)
                 } else if let ad = ad {
                     ad.fullScreenContentDelegate = self
                     continuation.resume(returning: ad)
                 }
-            }
+            })
         }
     }
     
@@ -62,7 +62,7 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
         self.rewardedAd = nil
     }
     
-    public func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    public func adDidDismissFullScreenContent(_ ad: GoogleMobileAds.FullScreenPresentingAd) {
         clean()
     }
     
@@ -71,10 +71,10 @@ public class RewardedAdCoordinator: NSObject, GADFullScreenContentDelegate {
             return print("Ad wasn't ready")
         }
         
-        rewardedAd.present(fromRootViewController: viewController) {
+        rewardedAd.present(from: viewController, userDidEarnRewardHandler: {
             let reward = rewardedAd.adReward
             print("Reward amount: \(reward.amount)")
             completion(reward.amount.intValue)
-        }
+        })
     }
 }

@@ -8,11 +8,11 @@
 import GoogleMobileAds
 import UIKit
 
-class NativeAdCardView: GADNativeAdView {
+class NativeAdCardView: GoogleMobileAds.NativeAdView {
     
     let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 10, weight: .semibold), textColor: .white)
     let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 17, weight: .medium), textColor: .label)
-    let myMediaView = GADMediaView()
+    let myMediaView = GoogleMobileAds.MediaView()
     let callToActionButton = UIButton(title: "", titleColor: .white, font: .boldSystemFont(ofSize: 18), backgroundColor: UIColor(hex: "#3871E0"), target: nil, action: nil)
     let iconImageView = UIImageView()
     let bodyLabel = UILabel(text: "", font: .systemFont(ofSize: 14, weight: .regular), textColor: .label)

@@ -14,6 +14,7 @@ struct ContentView: View {
     private let adViewControllerRepresentable = AdViewControllerRepresentable()
     private let adCoordinator = InterstitialAdCoordinator()
     private let rewardCoordinator = RewardedAdCoordinator()
+    private let appOpenAdCoordinator = AppOpenAdCoordinator()
     
     @State private var hiddenNative = false
     
@@ -24,7 +25,7 @@ struct ContentView: View {
                     Task {
                         do {
                             let ad = try await adCoordinator.loadInterstitialAd()
-                            ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                            ad.present(from: adViewControllerRepresentable.viewController)
                         } catch {
                             print(error.localizedDescription)
                         }
@@ -35,7 +36,7 @@ struct ContentView: View {
                     Task {
                         do {
                             let reward = try await rewardCoordinator.loadRewardedAd()
-                            reward.present(fromRootViewController: adViewControllerRepresentable.viewController) {
+                            reward.present(from: adViewControllerRepresentable.viewController) {
                                 print("Reward amount: \(reward.adReward.amount)")
                             }
                         } catch {
@@ -47,8 +48,8 @@ struct ContentView: View {
                 Button("Show App Open") {
                     Task {
                         do {
-                            let ad = try await adCoordinator.loadAppOpenAd()
-                            ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                            let ad = try await appOpenAdCoordinator.loadAppOpenAd()
+                            ad.present(from: adViewControllerRepresentable.viewController)
                         } catch {
                             print(error.localizedDescription)
                         }

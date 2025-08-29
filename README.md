@@ -2,10 +2,18 @@
 
 AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI applications. It supports multiple ad formats: Banner, Interstitial, App Open, Rewarded, Rewarded Interstitial, and Native ads.
 
+## ✨ Latest Updates (v2.0.0)
+
+- 🚀 **Upgraded to AdMob SDK v12.9.0** - Latest features and improvements
+- 🏗️ **Improved Architecture** - Separated App Open ads into dedicated coordinator
+- 🔧 **Better API Design** - Cleaner and more intuitive API
+- ⚡ **Enhanced Performance** - Optimized ad loading and memory management
+
 ## Requirements
 
 - iOS 14.0+
-- Google Mobile Ads SDK 11.2.0+
+- Xcode 16.0+
+- Google Mobile Ads SDK 12.9.0+
 
 ## Installation
 
@@ -94,33 +102,22 @@ struct ContentView: View {
 }
 ```
 
-### Interstitial & App Open Ads
+### Interstitial Ads
 
 ```swift
 struct ContentView: View {
     private let adViewControllerRepresentable = AdViewControllerRepresentable()
-    private let adCoordinator = InterstitialAdCoordinator()
+    private let interstitialCoordinator = InterstitialAdCoordinator()
     
     var body: some View {
         VStack {
             Button("Show Interstitial") {
                 Task {
                     do {
-                        let ad = try await adCoordinator.loadInterstitialAd()
-                        ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
+                        let ad = try await interstitialCoordinator.loadInterstitialAd()
+                        ad.present(from: adViewControllerRepresentable.viewController)
                     } catch {
                         print("Failed to show interstitial: \(error)")
-                    }
-                }
-            }
-            
-            Button("Show App Open") {
-                Task {
-                    do {
-                        let ad = try await adCoordinator.loadAppOpenAd()
-                        ad.present(fromRootViewController: adViewControllerRepresentable.viewController)
-                    } catch {
-                        print("Failed to show app open: \(error)")
                     }
                 }
             }
@@ -132,6 +129,45 @@ struct ContentView: View {
     }
 }
 ```
+
+### App Open Ads
+
+> **⚠️ Breaking Change in v2.0.0**: App Open ads now have their own dedicated coordinator for better lifecycle management.
+
+```swift
+struct ContentView: View {
+    private let adViewControllerRepresentable = AdViewControllerRepresentable()
+    private let appOpenAdCoordinator = AppOpenAdCoordinator()
+    
+    var body: some View {
+        VStack {
+            Button("Show App Open Ad") {
+                Task {
+                    do {
+                        let ad = try await appOpenAdCoordinator.loadAppOpenAd()
+                        ad.present(from: adViewControllerRepresentable.viewController)
+                    } catch {
+                        print("Failed to show app open ad: \(error)")
+                    }
+                }
+            }
+        }
+        .background {
+            adViewControllerRepresentable
+                .frame(width: .zero, height: .zero)
+        }
+        .onAppear {
+            // Preload app open ad for better UX
+            appOpenAdCoordinator.loadAd()
+        }
+    }
+}
+```
+
+**App Open Ad Features:**
+- ⏰ **Smart Expiration**: Automatically expires after 4 hours
+- 🔄 **Lifecycle Management**: Proper foreground/background handling  
+- 🎯 **State Tracking**: Built-in availability checking
 
 ### Rewarded Ads
 
@@ -145,9 +181,9 @@ struct ContentView: View {
             Task {
                 do {
                     let reward = try await rewardCoordinator.loadRewardedAd()
-                    reward.present(fromRootViewController: adViewControllerRepresentable.viewController) {
+                    reward.present(from: adViewControllerRepresentable.viewController, userDidEarnRewardHandler: {
                         print("User earned reward: \(reward.adReward.amount)")
-                    }
+                    })
                 } catch {
                     print("Failed to show rewarded ad: \(error)")
                 }
@@ -169,36 +205,58 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            NativeAdView(nativeViewModel: nativeViewModel)
+            // Multiple native ad styles available
+            NativeAdView(nativeViewModel: nativeViewModel, style: .card)
                 .frame(height: 300)
-                .onAppear {
-                    nativeViewModel.refreshAd()
-                }
+            
+            NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
+                .frame(height: 100)
+                
+            NativeAdView(nativeViewModel: nativeViewModel, style: .largeBanner)
+                .frame(height: 200)
+        }
+        .onAppear {
+            nativeViewModel.refreshAd()
         }
     }
 }
 ```
 
-## Error Handling
+**Native Ad Styles:**
+- `.card` - Full-featured card layout with media
+- `.banner` - Compact banner style
+- `.largeBanner` - Larger banner with more content
+- `.basic` - Custom XIB-based layout
 
-AdmobSwiftUI provides unified error handling through `AdmobSwiftUIError`:
+## 🔄 Migration Guide (v1.x → v2.0.0)
 
+### App Open Ads
+**Before (v1.x):**
 ```swift
-enum AdmobSwiftUIError: Error {
-    case adNotLoaded
-    case adLoadFailed(Error)
-    case presentationFailed(String)
-    case sdkNotInitialized
-}
+private let adCoordinator = InterstitialAdCoordinator()
+
+// This no longer works
+let ad = try await adCoordinator.loadAppOpenAd()
 ```
+
+**After (v2.0.0):**
+```swift
+private let appOpenAdCoordinator = AppOpenAdCoordinator()
+
+let ad = try await appOpenAdCoordinator.loadAppOpenAd()
+```
+
+### API Method Updates
+- `present(fromRootViewController:)` → `present(from:)`
+- `reward.present(fromRootViewController:completion:)` → `reward.present(from:userDidEarnRewardHandler:)`
 
 ## Notes
 
-This package uses Google AdMob. Ensure your project is properly configured with:
-1. Google Mobile Ads SDK integration
-2. Info.plist configurations as per Google's documentation
-3. `-ObjC` linker flag in build settings
-4. Proper ad unit IDs (replace test IDs in production)
+This package uses Google AdMob SDK v12.9.0. Ensure your project is properly configured with:
+1. **Xcode 16.0+** - Required for AdMob SDK v12
+2. **Info.plist configurations** - Add `GADApplicationIdentifier`
+3. **Build Settings** - Add `-ObjC` linker flag  
+4. **Ad Unit IDs** - Replace test IDs with production IDs before release
 
 ## License
 

@@ -8,14 +8,14 @@
 import SwiftUI
 import GoogleMobileAds
 
-public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDelegate {
-    @Published public var nativeAd: GADNativeAd?
+public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.NativeAdLoaderDelegate {
+    @Published public var nativeAd: GoogleMobileAds.NativeAd?
     @Published public var isLoading: Bool = false
-    private var adLoader: GADAdLoader!
+    private var adLoader: GoogleMobileAds.AdLoader!
     private var adUnitID: String
     private var lastRequestTime: Date?
     public var requestInterval: Int
-    private static var cachedAds: [String: GADNativeAd] = [:]
+    private static var cachedAds: [String: GoogleMobileAds.NativeAd] = [:]
     private static var lastRequestTimes: [String: Date] = [:]
     
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.native, requestInterval: Int = 1 * 60) {
@@ -42,14 +42,14 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
         lastRequestTime = now
         NativeAdViewModel.lastRequestTimes[adUnitID] = now
         
-        let adViewOptions = GADNativeAdViewAdOptions()
+        let adViewOptions = GoogleMobileAds.NativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
-        adLoader = GADAdLoader(adUnitID: adUnitID, rootViewController: nil, adTypes: [.native], options: [adViewOptions])
+        adLoader = GoogleMobileAds.AdLoader(adUnitID: adUnitID, rootViewController: nil, adTypes: [.native], options: [adViewOptions])
         adLoader.delegate = self
-        adLoader.load(GADRequest())
+        adLoader.load(GoogleMobileAds.Request())
     }
     
-    public func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADNativeAd) {
+    public func adLoader(_ adLoader: GoogleMobileAds.AdLoader, didReceive nativeAd: GoogleMobileAds.NativeAd) {
         self.nativeAd = nativeAd
         nativeAd.delegate = self
         self.isLoading = false
@@ -57,59 +57,59 @@ public class NativeAdViewModel: NSObject, ObservableObject, GADNativeAdLoaderDel
         nativeAd.mediaContent.videoController.delegate = self
     }
     
-    public func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: Error) {
+    public func adLoader(_ adLoader: GoogleMobileAds.AdLoader, didFailToReceiveAdWithError error: Error) {
         print("\(adLoader) failed with error: \(error.localizedDescription)")
         self.isLoading = false
     }
 }
 
-extension NativeAdViewModel: GADVideoControllerDelegate {
+extension NativeAdViewModel: GoogleMobileAds.VideoControllerDelegate {
     // GADVideoControllerDelegate methods
-    public func videoControllerDidPlayVideo(_ videoController: GADVideoController) {
+    public func videoControllerDidPlayVideo(_ videoController: GoogleMobileAds.VideoController) {
         // Implement this method to receive a notification when the video controller
         // begins playing the ad.
     }
     
-    public func videoControllerDidPauseVideo(_ videoController: GADVideoController) {
+    public func videoControllerDidPauseVideo(_ videoController: GoogleMobileAds.VideoController) {
         // Implement this method to receive a notification when the video controller
         // pauses the ad.
     }
     
-    public func videoControllerDidEndVideoPlayback(_ videoController: GADVideoController) {
+    public func videoControllerDidEndVideoPlayback(_ videoController: GoogleMobileAds.VideoController) {
         // Implement this method to receive a notification when the video controller
         // stops playing the ad.
     }
     
-    public func videoControllerDidMuteVideo(_ videoController: GADVideoController) {
+    public func videoControllerDidMuteVideo(_ videoController: GoogleMobileAds.VideoController) {
         // Implement this method to receive a notification when the video controller
         // mutes the ad.
     }
     
-    public func videoControllerDidUnmuteVideo(_ videoController: GADVideoController) {
+    public func videoControllerDidUnmuteVideo(_ videoController: GoogleMobileAds.VideoController) {
         // Implement this method to receive a notification when the video controller
         // unmutes the ad.
     }
 }
 
 // MARK: - GADNativeAdDelegate implementation
-extension NativeAdViewModel: GADNativeAdDelegate {
-    public func nativeAdDidRecordClick(_ nativeAd: GADNativeAd) {
+extension NativeAdViewModel: GoogleMobileAds.NativeAdDelegate {
+    public func nativeAdDidRecordClick(_ nativeAd: GoogleMobileAds.NativeAd) {
         print("\(#function) called")
     }
     
-    public func nativeAdDidRecordImpression(_ nativeAd: GADNativeAd) {
+    public func nativeAdDidRecordImpression(_ nativeAd: GoogleMobileAds.NativeAd) {
         print("\(#function) called")
     }
     
-    public func nativeAdWillPresentScreen(_ nativeAd: GADNativeAd) {
+    public func nativeAdWillPresentScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
         print("\(#function) called")
     }
     
-    public func nativeAdWillDismissScreen(_ nativeAd: GADNativeAd) {
+    public func nativeAdWillDismissScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
         print("\(#function) called")
     }
     
-    public func nativeAdDidDismissScreen(_ nativeAd: GADNativeAd) {
+    public func nativeAdDidDismissScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
         print("\(#function) called")
     }
 }
