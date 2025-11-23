@@ -10,11 +10,14 @@ import GoogleMobileAds
 
 public struct BannerView: UIViewControllerRepresentable {
     @State private var viewWidth: CGFloat = .zero
-    private let bannerView = GADBannerView()
+    private let bannerView = GoogleMobileAds.BannerView()
     private let adUnitID: String
     
-    public init(adUnitID: String = "ca-app-pub-3940256099942544/2934735716") {
+    var style: BannerViewStyle
+    
+    public init(adUnitID: String = "ca-app-pub-3940256099942544/2934735716", style: BannerViewStyle = .anchored) {
         self.adUnitID = adUnitID
+        self.style = style
     }
     
     public func makeUIViewController(context: Context) -> some UIViewController {
@@ -37,11 +40,16 @@ public struct BannerView: UIViewControllerRepresentable {
         guard viewWidth != .zero else { return }
         
         // Request a banner ad with the updated viewWidth.
-        bannerView.adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(viewWidth)
-        bannerView.load(GADRequest())
+        bannerView.adSize = switch style {
+        case .anchored:
+            currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
+        case .inline:
+            currentOrientationInlineAdaptiveBanner(width: viewWidth)
+        }
+        bannerView.load(Request())
     }
     
-    public class Coordinator: NSObject, BannerViewControllerWidthDelegate, GADBannerViewDelegate {
+    public class Coordinator: NSObject, BannerViewControllerWidthDelegate, BannerViewDelegate {
         let parent: BannerView
         
         init(_ parent: BannerView) {
@@ -55,27 +63,27 @@ public struct BannerView: UIViewControllerRepresentable {
             parent.viewWidth = width
         }
         
-        public func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        public func bannerViewDidReceiveAd(_ bannerView: GoogleMobileAds.BannerView) {
             print("\(#function) called")
         }
         
-        public func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        public func bannerView(_ bannerView: GoogleMobileAds.BannerView, didFailToReceiveAdWithError error: Error) {
             print("\(#function) called")
         }
         
-        public func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+        public func bannerViewDidRecordImpression(_ bannerView: GoogleMobileAds.BannerView) {
             print("\(#function) called")
         }
         
-        public func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
+        public func bannerViewWillPresentScreen(_ bannerView: GoogleMobileAds.BannerView) {
             print("\(#function) called")
         }
         
-        public func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
+        public func bannerViewWillDismissScreen(_ bannerView: GoogleMobileAds.BannerView) {
             print("\(#function) called")
         }
         
-        public func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
+        public func bannerViewDidDismissScreen(_ bannerView: GoogleMobileAds.BannerView) {
             print("\(#function) called")
         }
     }

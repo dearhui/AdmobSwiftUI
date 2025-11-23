@@ -12,7 +12,7 @@ AdmobSwiftUI is a Swift package that integrates Admob ads into SwiftUI. This pac
 ## Requirements
 
 - iOS 14.0+
-- Google Mobile Ads SDK 10.6.0+
+- Google Mobile Ads SDK 12.0.0+
 
 ## Installation
 
@@ -29,11 +29,14 @@ To use AdmobSwiftUI, you need to add some key values to your Info.plist as requi
 Additionally, you need to start the Google Mobile Ads SDK at the start of your app. Add the following code to your @main struct:
 
 ```swift
+import SwiftUI
+import GoogleMobileAds
+
 @main
 struct AdmobSwitUIDemoApp: App {
     
     init() {
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        MobileAds.shared.start()
     }
     
     var body: some Scene {

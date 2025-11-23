@@ -9,7 +9,7 @@ import GoogleMobileAds
 import UIKit
 import LBTATools
 
-class NativeAdBannerView: GADNativeAdView {
+class NativeAdBannerView: GoogleMobileAds.NativeAdView {
     
     let adTag: UILabel = UILabel(text: "AD", font: .systemFont(ofSize: 11, weight: .semibold), textColor: .white, textAlignment: .center)
     let headlineLabel = UILabel(text: "", font: .systemFont(ofSize: 15, weight: .medium), textColor: .label)

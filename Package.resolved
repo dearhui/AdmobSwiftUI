@@ -1,24 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "googleappmeasurement",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/GoogleAppMeasurement.git",
-      "state" : {
-        "revision" : "bf3bb24f6b60a7acedaef504e9ce97154203217a",
-        "version" : "10.22.0"
-      }
-    },
-    {
-      "identity" : "googleutilities",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/GoogleUtilities.git",
-      "state" : {
-        "revision" : "830ffa9276e10267881f2697283c2fcd867603fd",
-        "version" : "7.13.0"
-      }
-    },
-    {
       "identity" : "lbtatools",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/bhlvoong/LBTATools",
@@ -28,30 +10,12 @@
       }
     },
     {
-      "identity" : "nanopb",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/firebase/nanopb.git",
-      "state" : {
-        "revision" : "b7e1104502eca3a213b46303391ca4d3bc8ddec1",
-        "version" : "2.30910.0"
-      }
-    },
-    {
-      "identity" : "promises",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/google/promises.git",
-      "state" : {
-        "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
-        "version" : "2.4.0"
-      }
-    },
-    {
       "identity" : "swift-package-manager-google-mobile-ads",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/googleads/swift-package-manager-google-mobile-ads.git",
       "state" : {
-        "revision" : "70516c9e799a366ff90c1a70c09c48f7c076fd8a",
-        "version" : "10.14.0"
+        "revision" : "7778cc1ab037c10dbbe026959e51e616bd961be9",
+        "version" : "11.13.0"
       }
     },
     {

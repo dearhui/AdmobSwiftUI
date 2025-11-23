@@ -14,7 +14,7 @@ public enum NativeAdViewStyle {
     case banner
     case largeBanner
     
-    var view: GADNativeAdView {
+    var view: GoogleMobileAds.NativeAdView {
         switch self {
         case .basic:
             return makeNibView(name: "NativeAdView")
@@ -27,9 +27,9 @@ public enum NativeAdViewStyle {
         }
     }
     
-    func makeNibView(name: String) -> GADNativeAdView {
+    func makeNibView(name: String) -> GoogleMobileAds.NativeAdView {
         let bundle = Bundle.module
         let nib = UINib(nibName: name, bundle: bundle)
-        return nib.instantiate(withOwner: nil, options: nil).first as! GADNativeAdView
+        return nib.instantiate(withOwner: nil, options: nil).first as! GoogleMobileAds.NativeAdView
     }
 }
