@@ -8,6 +8,7 @@ AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI ap
 - 🏗️ **Improved Architecture** - Separated App Open ads into dedicated coordinator
 - 🔧 **Better API Design** - Cleaner and more intuitive API
 - ⚡ **Enhanced Performance** - Optimized ad loading and memory management
+- 📱 **Inline Banner Support** - New banner style for scrollable content
 
 ## Requirements
 
@@ -95,12 +96,21 @@ import AdmobSwiftUI
 struct ContentView: View {
     var body: some View {
         VStack {
+            // Default anchored banner (fixed at top/bottom)
             BannerView()
+                .frame(height: 50)
+
+            // Inline banner (for scrollable content)
+            BannerView(style: .inline)
                 .frame(height: 50)
         }
     }
 }
 ```
+
+**Banner Styles:**
+- `.anchored` (default) - Fixed position banner, ideal for top/bottom of screen
+- `.inline` - Adaptive banner for embedding within scrollable content like `ScrollView` or `List`
 
 ### Interstitial Ads
 
@@ -230,6 +240,33 @@ struct ContentView: View {
 
 ## 🔄 Migration Guide (v1.x → v2.0.0)
 
+### SDK Initialization
+**Before (v1.x):**
+```swift
+import GoogleMobileAds
+
+@main
+struct MyApp: App {
+    init() {
+        GADMobileAds.sharedInstance().start(completionHandler: nil)
+    }
+}
+```
+
+**After (v2.0.0):**
+```swift
+import AdmobSwiftUI
+
+@main
+struct MyApp: App {
+    init() {
+        AdmobSwiftUI.initialize()
+        // Or with configuration
+        // AdmobSwiftUI.initialize(with: .init(enableDebugMode: true))
+    }
+}
+```
+
 ### App Open Ads
 **Before (v1.x):**
 ```swift
@@ -247,8 +284,12 @@ let ad = try await appOpenAdCoordinator.loadAppOpenAd()
 ```
 
 ### API Method Updates
-- `present(fromRootViewController:)` → `present(from:)`
-- `reward.present(fromRootViewController:completion:)` → `reward.present(from:userDidEarnRewardHandler:)`
+| v1.x | v2.0.0 |
+|------|--------|
+| `GADMobileAds.sharedInstance().start()` | `AdmobSwiftUI.initialize()` |
+| `present(fromRootViewController:)` | `present(from:)` |
+| `GADRequest()` | `GoogleMobileAds.Request()` |
+| Hardcoded test ad unit IDs | `AdmobSwiftUI.AdUnitIDs.banner` etc.
 
 ## Notes
 

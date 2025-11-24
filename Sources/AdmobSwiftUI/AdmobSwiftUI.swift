@@ -6,7 +6,7 @@ import GoogleMobileAds
 public struct AdmobSwiftUI {
     
     /// Package version
-    public static let version = "1.0.0"
+    public static let version = "2.0.0"
     
     /// Configuration for AdMob initialization
     public struct Configuration {

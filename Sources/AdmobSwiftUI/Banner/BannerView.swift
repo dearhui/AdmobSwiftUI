@@ -13,9 +13,11 @@ public struct BannerView: UIViewControllerRepresentable {
     @State private var currentAdSize: AdSize?
     private let bannerView = GoogleMobileAds.BannerView()
     private let adUnitID: String
-    
-    public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.banner) {
+    private let style: BannerViewStyle
+
+    public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.banner, style: BannerViewStyle = .anchored) {
         self.adUnitID = adUnitID
+        self.style = style
     }
     
     public func makeUIViewController(context: Context) -> some UIViewController {
@@ -36,9 +38,14 @@ public struct BannerView: UIViewControllerRepresentable {
     public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
         AdmobSwiftUI.log("Banner view width updated: \(viewWidth)", level: .debug)
         guard viewWidth != .zero else { return }
-        
+
         // Only reload if size actually changed
-        let newAdSize = currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
+        let newAdSize: AdSize = switch style {
+        case .anchored:
+            currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
+        case .inline:
+            currentOrientationInlineAdaptiveBanner(width: viewWidth)
+        }
         if currentAdSize == nil || !isAdSizeEqualToSize(size1: currentAdSize!, size2: newAdSize) {
             DispatchQueue.main.async {
                 self.currentAdSize = newAdSize
