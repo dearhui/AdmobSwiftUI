@@ -30,6 +30,11 @@ public enum NativeAdViewStyle {
     func makeNibView(name: String) -> GoogleMobileAds.NativeAdView {
         let bundle = Bundle.module
         let nib = UINib(nibName: name, bundle: bundle)
-        return nib.instantiate(withOwner: nil, options: nil).first as! GoogleMobileAds.NativeAdView
+        guard let view = nib.instantiate(withOwner: nil, options: nil).first as? GoogleMobileAds.NativeAdView else {
+            assertionFailure("AdmobSwiftUI: Failed to load \(name).xib as NativeAdView")
+            AdmobSwiftUI.log("Failed to load \(name).xib as NativeAdView, falling back to empty view", level: .error)
+            return GoogleMobileAds.NativeAdView(frame: .zero)
+        }
+        return view
     }
 }

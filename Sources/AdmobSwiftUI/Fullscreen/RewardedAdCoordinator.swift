@@ -70,12 +70,13 @@ public class RewardedAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentD
     
     public func showAd(from viewController: UIViewController, userDidEarnRewardHandler completion: @escaping (Int) -> Void) {
         guard let rewardedAd = rewardedAd else {
-            return print("Ad wasn't ready")
+            AdmobSwiftUI.log("Rewarded ad wasn't ready", level: .warning)
+            return
         }
-        
+
         rewardedAd.present(from: viewController, userDidEarnRewardHandler: {
             let reward = rewardedAd.adReward
-            print("Reward amount: \(reward.amount)")
+            AdmobSwiftUI.log("Reward amount: \(reward.amount)", level: .debug)
             completion(reward.amount.intValue)
         })
     }

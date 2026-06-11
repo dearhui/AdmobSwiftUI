@@ -16,7 +16,7 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
     private var lastRequestTime: Date?
     public var requestInterval: Int
     private static let cacheQueue = DispatchQueue(label: "com.admobswiftui.native.cache", attributes: .concurrent)
-    private static let maxCacheSize = 10
+    private static let maxCacheSize = AdmobSwiftUI.Constants.nativeAdCacheMaxSize
     private static var cachedAds: [String: GoogleMobileAds.NativeAd] = [:]
     private static var lastRequestTimes: [String: Date] = [:]
     
@@ -36,18 +36,20 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
         let now = Date()
         
         if nativeAd != nil, let lastRequest = lastRequestTime, now.timeIntervalSince(lastRequest) < Double(requestInterval) {
-            print("The last request was made less than \(requestInterval / 60) minutes ago. New request is canceled.")
+            AdmobSwiftUI.log("The last request was made less than \(requestInterval / 60) minutes ago. New request is canceled.", level: .debug)
             return
         }
-        
+
         guard !isLoading else {
-            print("Previous request is still loading, new request is canceled.")
+            AdmobSwiftUI.log("Previous request is still loading, new request is canceled.", level: .debug)
             return
         }
-        
+
         isLoading = true
         lastRequestTime = now
-        NativeAdViewModel.lastRequestTimes[adUnitID] = now
+        NativeAdViewModel.cacheQueue.async(flags: .barrier) {
+            NativeAdViewModel.lastRequestTimes[self.adUnitID] = now
+        }
         
         let adViewOptions = GoogleMobileAds.NativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
@@ -67,7 +69,7 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
     }
     
     public func adLoader(_ adLoader: GoogleMobileAds.AdLoader, didFailToReceiveAdWithError error: Error) {
-        print("\(adLoader) failed with error: \(error.localizedDescription)")
+        AdmobSwiftUI.log("\(adLoader) failed with error: \(error.localizedDescription)", level: .error)
         self.isLoading = false
     }
     
@@ -124,22 +126,22 @@ extension NativeAdViewModel: GoogleMobileAds.VideoControllerDelegate {
 // MARK: - GADNativeAdDelegate implementation
 extension NativeAdViewModel: GoogleMobileAds.NativeAdDelegate {
     public func nativeAdDidRecordClick(_ nativeAd: GoogleMobileAds.NativeAd) {
-        print("\(#function) called")
+        AdmobSwiftUI.log("\(#function) called", level: .debug)
     }
-    
+
     public func nativeAdDidRecordImpression(_ nativeAd: GoogleMobileAds.NativeAd) {
-        print("\(#function) called")
+        AdmobSwiftUI.log("\(#function) called", level: .debug)
     }
-    
+
     public func nativeAdWillPresentScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
-        print("\(#function) called")
+        AdmobSwiftUI.log("\(#function) called", level: .debug)
     }
-    
+
     public func nativeAdWillDismissScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
-        print("\(#function) called")
+        AdmobSwiftUI.log("\(#function) called", level: .debug)
     }
-    
+
     public func nativeAdDidDismissScreen(_ nativeAd: GoogleMobileAds.NativeAd) {
-        print("\(#function) called")
+        AdmobSwiftUI.log("\(#function) called", level: .debug)
     }
 }

@@ -86,7 +86,7 @@ func stack(_ views: UIView..., axis: NSLayoutConstraint.Axis = .vertical, spacin
 }
 
 func hstack(_ views: UIView..., spacing: CGFloat = 0, alignment: UIStackView.Alignment = .fill, distribution: UIStackView.Distribution = .fill) -> UIStackView {
-    return stack(views[0], axis: .horizontal, spacing: spacing, alignment: alignment, distribution: distribution)
+    return hstack(views, spacing: spacing, alignment: alignment, distribution: distribution)
 }
 
 // Handle multiple views for hstack

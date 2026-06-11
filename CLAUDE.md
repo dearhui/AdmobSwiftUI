@@ -6,15 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI applications. It supports multiple ad formats: Banner, Interstitial, App Open, Rewarded, Rewarded Interstitial, and Native ads.
 
-**Current Version:** 2.0.0
+**Current Version:** 2.1.0
 
 ## Build Commands
 
 This is an iOS-only Swift package targeting iOS 14.0+.
 
-- **Build for iOS**: Use Xcode or build from iOS device/simulator context
-- **Test**: `swift test` (currently fails on macOS, needs iOS context)
-- **Demo**: Open and run `Demo/AdmobSwitUIDemo.xcodeproj` in Xcode
+> ⚠️ GoogleMobileAds is an iOS-only binary target. `swift build` / `swift test` on macOS DO NOT work. Always verify with xcodebuild + iOS Simulator.
+
+- **Build**: `xcodebuild build -scheme AdmobSwiftUI -destination 'generic/platform=iOS Simulator'`
+- **Test**: `xcodebuild test -scheme AdmobSwiftUI -destination 'platform=iOS Simulator,name=iPhone 17'` (replace with any installed simulator name)
+- **Demo**: Open and run `Demo/AdmobSwitUIDemo.xcodeproj` in Xcode, or:
+  ```bash
+  xcodebuild build -project Demo/AdmobSwitUIDemo.xcodeproj -scheme AdmobSwitUIDemo -destination 'platform=iOS Simulator,name=iPhone 17'
+  ```
+
+> Note: 本機網路若有 DNS 層擋廣告（如 AdGuard/Pi-hole 擋 `googleads.g.doubleclick.net`），模擬器上測試廣告會載不出來（SDK 回報 "Could not retrieve application configuration data"）。實測廣告前先確認該網域可解析。
 
 ## Architecture
 

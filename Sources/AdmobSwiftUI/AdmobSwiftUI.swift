@@ -6,7 +6,15 @@ import GoogleMobileAds
 public struct AdmobSwiftUI {
     
     /// Package version
-    public static let version = "2.0.0"
+    public static let version = "2.1.0"
+
+    /// Internal constants shared across the package
+    enum Constants {
+        /// App Open ads expire after 4 hours (Google policy)
+        static let appOpenAdExpirationInterval: TimeInterval = 4 * 60 * 60
+        /// Maximum number of native ads kept in the in-memory cache
+        static let nativeAdCacheMaxSize = 10
+    }
     
     /// Configuration for AdMob initialization
     public struct Configuration {
@@ -43,7 +51,7 @@ public struct AdmobSwiftUI {
         }
         
         MobileAds.shared.start { status in
-            print("AdmobSwiftUI: Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)")
+            log("Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)", level: .info)
         }
     }
     
@@ -146,15 +154,18 @@ public struct AdmobSwiftUI {
         
         /// 打印當前使用的廣告 ID 配置
         public static func printCurrentConfiguration() {
-            print("=== AdmobSwiftUI 廣告 ID 配置 ===")
-            print("環境: \(useTestAds ? "🧪 測試環境" : "🚀 生產環境")")
-            print("Banner: \(banner)")
-            print("Interstitial: \(interstitial)")
-            print("Rewarded: \(rewarded)")
-            print("Rewarded Interstitial: \(rewardedInterstitial)")
-            print("Native: \(native)")
-            print("App Open: \(appOpen)")
-            print("================================")
+            let configuration = """
+            === AdmobSwiftUI 廣告 ID 配置 ===
+            環境: \(useTestAds ? "🧪 測試環境" : "🚀 生產環境")
+            Banner: \(banner)
+            Interstitial: \(interstitial)
+            Rewarded: \(rewarded)
+            Rewarded Interstitial: \(rewardedInterstitial)
+            Native: \(native)
+            App Open: \(appOpen)
+            ================================
+            """
+            AdmobSwiftUI.log(configuration, level: .info)
         }
         
         /// 檢查廣告 ID 是否為測試 ID

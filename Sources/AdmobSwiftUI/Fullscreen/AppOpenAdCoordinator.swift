@@ -37,7 +37,7 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
                 self.loadTime = Date()
                 ad.fullScreenContentDelegate = self
             } else {
-                print("Failed to load app open ad: \(error?.localizedDescription ?? "Unknown error")")
+                AdmobSwiftUI.log("Failed to load app open ad: \(error?.localizedDescription ?? "Unknown error")", level: .error)
             }
         })
     }
@@ -86,8 +86,7 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     
     private var isAdExpired: Bool {
         guard let loadTime = loadTime else { return true }
-        // App open ads expire after 4 hours
-        return Date().timeIntervalSince(loadTime) > 4 * 60 * 60
+        return Date().timeIntervalSince(loadTime) > AdmobSwiftUI.Constants.appOpenAdExpirationInterval
     }
     
     private func clean() {
@@ -102,16 +101,16 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     }
     
     public func ad(_ ad: GoogleMobileAds.FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
-        print("Failed to present app open ad: \(error.localizedDescription)")
+        AdmobSwiftUI.log("Failed to present app open ad: \(error.localizedDescription)", level: .error)
         clean()
     }
-    
+
     public func adWillPresentFullScreenContent(_ ad: GoogleMobileAds.FullScreenPresentingAd) {
-        print("App open ad will present")
+        AdmobSwiftUI.log("App open ad will present", level: .debug)
     }
-    
+
     public func adDidRecordImpression(_ ad: GoogleMobileAds.FullScreenPresentingAd) {
-        print("App open ad did record impression")
+        AdmobSwiftUI.log("App open ad did record impression", level: .debug)
     }
 }
 

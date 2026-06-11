@@ -11,7 +11,6 @@ import GoogleMobileAds
 public struct BannerView: UIViewControllerRepresentable {
     @State private var viewWidth: CGFloat = .zero
     @State private var currentAdSize: AdSize?
-    private let bannerView = GoogleMobileAds.BannerView()
     private let adUnitID: String
     private let style: BannerViewStyle
 
@@ -19,23 +18,28 @@ public struct BannerView: UIViewControllerRepresentable {
         self.adUnitID = adUnitID
         self.style = style
     }
-    
+
     public func makeUIViewController(context: Context) -> some UIViewController {
         let bannerViewController = BannerViewController()
+        // The banner view lives on the coordinator: the representable struct is
+        // recreated on every parent render, so an instance stored here would be
+        // a fresh, detached view by the time updateUIViewController runs.
+        let bannerView = context.coordinator.bannerView
         bannerView.adUnitID = adUnitID
         bannerView.rootViewController = bannerViewController
         bannerView.delegate = context.coordinator
         bannerViewController.view.addSubview(bannerView)
         bannerViewController.delegate = context.coordinator
-        
+
         return bannerViewController
     }
-    
+
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     public func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {
+        context.coordinator.parent = self
         AdmobSwiftUI.log("Banner view width updated: \(viewWidth)", level: .debug)
         guard viewWidth != .zero else { return }
 
@@ -50,14 +54,17 @@ public struct BannerView: UIViewControllerRepresentable {
             DispatchQueue.main.async {
                 self.currentAdSize = newAdSize
             }
+            let bannerView = context.coordinator.bannerView
             bannerView.adSize = newAdSize
+            AdmobSwiftUI.log("Loading banner ad with size: \(newAdSize.size)", level: .debug)
             bannerView.load(GoogleMobileAds.Request())
         }
     }
-    
+
     public class Coordinator: NSObject, BannerViewControllerWidthDelegate, GoogleMobileAds.BannerViewDelegate {
-        let parent: BannerView
-        
+        let bannerView = GoogleMobileAds.BannerView()
+        var parent: BannerView
+
         init(_ parent: BannerView) {
             self.parent = parent
         }
