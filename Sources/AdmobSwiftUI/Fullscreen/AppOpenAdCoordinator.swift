@@ -5,10 +5,11 @@
 //  Created by minghui on 2023/6/13.
 //
 
-import GoogleMobileAds
+@preconcurrency import GoogleMobileAds
 import SwiftUI
 import UIKit
 
+@MainActor
 public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
     private var appOpenAd: GoogleMobileAds.AppOpenAd?
     private let adUnitID: String
@@ -31,15 +32,16 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     // MARK: - Ad Loading
     public func loadAd() {
         clean()
-        GoogleMobileAds.AppOpenAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-            if let ad = ad {
+        Task {
+            do {
+                let ad = try await GoogleMobileAds.AppOpenAd.load(with: adUnitID, request: GoogleMobileAds.Request())
                 self.appOpenAd = ad
                 self.loadTime = Date()
                 ad.fullScreenContentDelegate = self
-            } else {
-                AdmobSwiftUI.log("Failed to load app open ad: \(error?.localizedDescription ?? "Unknown error")", level: .error)
+            } catch {
+                AdmobSwiftUI.log("Failed to load app open ad: \(error.localizedDescription)", level: .error)
             }
-        })
+        }
     }
     
     // MARK: - Async Ad Loading
@@ -52,18 +54,11 @@ public class AppOpenAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDe
     // MARK: - Async/await API
     public func loadAppOpenAd() async throws -> GoogleMobileAds.AppOpenAd {
         clean()
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            GoogleMobileAds.AppOpenAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let ad = ad {
-                    self.loadTime = Date()
-                    ad.fullScreenContentDelegate = self
-                    continuation.resume(returning: ad)
-                }
-            })
-        }
+
+        let ad = try await GoogleMobileAds.AppOpenAd.load(with: adUnitID, request: GoogleMobileAds.Request())
+        loadTime = Date()
+        ad.fullScreenContentDelegate = self
+        return ad
     }
     
     // MARK: - Ad Presentation

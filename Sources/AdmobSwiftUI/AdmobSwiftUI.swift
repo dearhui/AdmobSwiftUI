@@ -240,14 +240,29 @@ public enum AdmobSwiftUILogLevel: Int {
 
 // MARK: - Logging Helper
 extension AdmobSwiftUI {
-    /// Current log level (default: .error for release, .debug for debug)
-    public static var logLevel: AdmobSwiftUILogLevel = {
+    private static let logLevelLock = NSLock()
+    // Guarded by logLevelLock; accessed via the thread-safe `logLevel` property below.
+    nonisolated(unsafe) private static var _logLevel: AdmobSwiftUILogLevel = {
         #if DEBUG
         return .debug
         #else
         return .error
         #endif
     }()
+
+    /// Current log level (default: .error for release, .debug for debug)
+    public static var logLevel: AdmobSwiftUILogLevel {
+        get {
+            logLevelLock.lock()
+            defer { logLevelLock.unlock() }
+            return _logLevel
+        }
+        set {
+            logLevelLock.lock()
+            defer { logLevelLock.unlock() }
+            _logLevel = newValue
+        }
+    }
     
     /// Internal logging method
     internal static func log(_ message: String, level: AdmobSwiftUILogLevel = .info) {

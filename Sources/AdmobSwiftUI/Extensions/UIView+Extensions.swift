@@ -75,6 +75,7 @@ extension UIButton {
 }
 
 // MARK: - Stack View Helper Functions
+@MainActor
 func stack(_ views: UIView..., axis: NSLayoutConstraint.Axis = .vertical, spacing: CGFloat = 0, alignment: UIStackView.Alignment = .fill, distribution: UIStackView.Distribution = .fill) -> UIStackView {
     let stackView = UIStackView(arrangedSubviews: views)
     stackView.axis = axis
@@ -85,11 +86,13 @@ func stack(_ views: UIView..., axis: NSLayoutConstraint.Axis = .vertical, spacin
     return stackView
 }
 
+@MainActor
 func hstack(_ views: UIView..., spacing: CGFloat = 0, alignment: UIStackView.Alignment = .fill, distribution: UIStackView.Distribution = .fill) -> UIStackView {
     return hstack(views, spacing: spacing, alignment: alignment, distribution: distribution)
 }
 
 // Handle multiple views for hstack
+@MainActor
 func hstack(_ views: [UIView], spacing: CGFloat = 0, alignment: UIStackView.Alignment = .fill, distribution: UIStackView.Distribution = .fill) -> UIStackView {
     let stackView = UIStackView(arrangedSubviews: views)
     stackView.axis = .horizontal

@@ -46,7 +46,8 @@ public struct BannerView: UIViewControllerRepresentable {
         // Only reload if size actually changed
         let newAdSize: AdSize = switch style {
         case .anchored:
-            currentOrientationAnchoredAdaptiveBanner(width: viewWidth)
+            // SDK 13: large anchored adaptive banner (50-150pt tall, supports video demand)
+            largeAnchoredAdaptiveBanner(width: viewWidth)
         case .inline:
             currentOrientationInlineAdaptiveBanner(width: viewWidth)
         }
@@ -61,6 +62,7 @@ public struct BannerView: UIViewControllerRepresentable {
         }
     }
 
+    @MainActor
     public class Coordinator: NSObject, BannerViewControllerWidthDelegate, GoogleMobileAds.BannerViewDelegate {
         let bannerView = GoogleMobileAds.BannerView()
         var parent: BannerView
@@ -68,12 +70,12 @@ public struct BannerView: UIViewControllerRepresentable {
         init(_ parent: BannerView) {
             self.parent = parent
         }
-        
+
         // MARK: - BannerViewControllerWidthDelegate methods
-        
+
         func bannerViewController(_ bannerViewController: BannerViewController, didUpdate width: CGFloat) {
-            // Pass the viewWidth from Coordinator to BannerView.
-            DispatchQueue.main.async {
+            // Defer the state mutation out of the current view update cycle.
+            Task { @MainActor in
                 self.parent.viewWidth = width
             }
         }
