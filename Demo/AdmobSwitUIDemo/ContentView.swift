@@ -9,89 +9,182 @@ import SwiftUI
 import AdmobSwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     // 使用預設的 Google 測試廣告 ID
     @StateObject private var nativeViewModel = NativeAdViewModel(requestInterval: 60)
     private let adViewControllerRepresentable = AdViewControllerRepresentable()
-    private let adCoordinator = InterstitialAdCoordinator()
-    private let rewardCoordinator = RewardedAdCoordinator()
-    private let appOpenAdCoordinator = AppOpenAdCoordinator()
-    
+    @StateObject private var adCoordinator = InterstitialAdCoordinator()
+    @StateObject private var rewardCoordinator = RewardedAdCoordinator()
+    @StateObject private var appOpenAdCoordinator = AppOpenAdCoordinator()
+
     @State private var hiddenNative = false
-    
+    @State private var lastReward: AdReward?
+
     var body: some View {
-        ScrollView {
-            VStack (spacing: 20) {
-                Button("Show InterstitialAd") {
-                    Task {
-                        do {
-                            let ad = try await adCoordinator.loadInterstitialAd()
-                            ad.present(from: adViewControllerRepresentable.viewController)
-                        } catch {
-                            print(error.localizedDescription)
-                        }
-                    }
-                }
-                
-                Button("show reward") {
-                    Task {
-                        do {
-                            let reward = try await rewardCoordinator.loadRewardedAd()
-                            reward.present(from: adViewControllerRepresentable.viewController) {
-                                print("Reward amount: \(reward.adReward.amount)")
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Button("Show InterstitialAd") {
+                        Task {
+                            do {
+                                try await adCoordinator.loadAndPresent(from: adViewControllerRepresentable.viewController)
+                            } catch {
+                                print(error.localizedDescription)
                             }
-                        } catch {
-                            print(error.localizedDescription)
                         }
                     }
-                }
-                
-                Button("Show App Open") {
-                    Task {
-                        do {
-                            let ad = try await appOpenAdCoordinator.loadAppOpenAd()
-                            ad.present(from: adViewControllerRepresentable.viewController)
-                        } catch {
-                            print(error.localizedDescription)
+
+                    Button("show reward") {
+                        Task {
+                            do {
+                                let reward = try await rewardCoordinator.loadAndPresent(from: adViewControllerRepresentable.viewController)
+                                lastReward = reward
+                                print("Reward amount: \(reward.amount) \(reward.type)")
+                            } catch {
+                                print(error.localizedDescription)
+                            }
                         }
                     }
+
+                    if let lastReward {
+                        Text("Last reward: \(lastReward.amount) \(lastReward.type)")
+                            .font(.footnote)
+                    }
+
+                    Button("Show App Open") {
+                        Task {
+                            do {
+                                try await appOpenAdCoordinator.loadAndPresent(from: adViewControllerRepresentable.viewController)
+                            } catch {
+                                print(error.localizedDescription)
+                            }
+                        }
+                    }
+
+                    // 容忍失敗的場景化 API：沒廣告時只記 log 並補載
+                    Button("Present App Open If Available") {
+                        appOpenAdCoordinator.presentIfAvailable()
+                    }
+
+                    Button("reload native") {
+                        Task {
+                            try? await nativeViewModel.load()
+                        }
+                    }
+
+                    Button("show ad config") {
+                        AdmobSwiftUI.AdUnitIDs.printCurrentConfiguration()
+                    }
+
+                    Button("hidden native") {
+                        hiddenNative.toggle()
+                    }
+
+                    NavigationLink("Legacy v2 API (deprecated)") {
+                        LegacyAPIView()
+                    }
+
+                    // SDK 13 large anchored adaptive banner is 50-150pt tall
+                    // (116pt at iPhone width); 50pt would clip it.
+                    BannerView()
+                        .frame(height: 120)
+                        .background(Color.red)
+
+                    if !hiddenNative {
+                        NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
+                            .frame(height: 80)
+                            .background(Color(UIColor.secondarySystemBackground))
+
+//                        NativeAdView(nativeViewModel: nativeViewModel, style: .card)
+//                            .frame(height: 380) // 250 ~ 300
+//                            .background(Color(UIColor.secondarySystemBackground))
+                    }
                 }
-                
-                Button("reload native") {
-                    nativeViewModel.refreshAd()
-                }
-                
-                Button("show ad config") {
-                    AdmobSwiftUI.AdUnitIDs.printCurrentConfiguration()
-                }
-                
-                Button("hidden native") {
-                    hiddenNative.toggle()
-                }
-                
-                // SDK 13 large anchored adaptive banner is 50-150pt tall
-                // (116pt at iPhone width); 50pt would clip it.
-                BannerView()
-                    .frame(height: 120)
-                    .background(Color.red)
-                
-                if !hiddenNative {
-                    NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
-                        .frame(height: 80)
-                        .background(Color(UIColor.secondarySystemBackground))
-                    
-//                    NativeAdView(nativeViewModel: nativeViewModel, style: .card)
-//                        .frame(height: 380) // 250 ~ 300
-//                        .background(Color(UIColor.secondarySystemBackground))
-                }
-                
-                
-                    
+                .padding()
             }
-            .padding()
+            .navigationTitle("AdmobSwiftUI v3")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .background {
             // Add the adViewControllerRepresentable to the background so it
             // doesn't influence the placement of other views in the view hierarchy.
+            adViewControllerRepresentable
+                .frame(width: .zero, height: .zero)
+        }
+        .onAppear {
+            // App open 廣告：前景自動補載，配合 presentIfAvailable 使用
+            appOpenAdCoordinator.autoReloadsOnForeground = true
+            Task {
+                try? await nativeViewModel.load()
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                print("App open ad ready: \(appOpenAdCoordinator.isReady)")
+            }
+        }
+    }
+}
+
+/// 用 v2（deprecated）API 的頁面：驗證 3.x shims 只有 deprecation warning、行為照舊。
+struct LegacyAPIView: View {
+    @StateObject private var nativeViewModel = NativeAdViewModel(requestInterval: 60)
+    private let adViewControllerRepresentable = AdViewControllerRepresentable()
+    @StateObject private var adCoordinator = InterstitialAdCoordinator()
+    @StateObject private var rewardCoordinator = RewardedAdCoordinator()
+    @StateObject private var appOpenAdCoordinator = AppOpenAdCoordinator()
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Button("Load Interstitial (v2 loadAd)") {
+                adCoordinator.loadAd()
+            }
+
+            Button("Show Interstitial (v2 showAd)") {
+                do {
+                    try adCoordinator.showAd(from: adViewControllerRepresentable.viewController)
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+
+            Button("Show Reward (v2 load + showAd)") {
+                Task {
+                    do {
+                        _ = try await rewardCoordinator.loadRewardedAd()
+                        rewardCoordinator.showAd(from: adViewControllerRepresentable.viewController) { amount in
+                            print("Reward amount: \(amount)")
+                        }
+                    } catch {
+                        print(error.localizedDescription)
+                    }
+                }
+            }
+
+            Button("Show App Open (v2 loadAppOpenAd)") {
+                Task {
+                    do {
+                        let ad = try await appOpenAdCoordinator.loadAppOpenAd()
+                        ad.present(from: adViewControllerRepresentable.viewController)
+                    } catch {
+                        print(error.localizedDescription)
+                    }
+                }
+            }
+
+            Button("Reload Native (v2 refreshAd)") {
+                nativeViewModel.refreshAd()
+            }
+
+            NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
+                .frame(height: 80)
+                .background(Color(UIColor.secondarySystemBackground))
+        }
+        .padding()
+        .navigationTitle("Legacy v2 API")
+        .navigationBarTitleDisplayMode(.inline)
+        .background {
             adViewControllerRepresentable
                 .frame(width: .zero, height: .zero)
         }

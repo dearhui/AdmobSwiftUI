@@ -8,12 +8,14 @@ public struct AdmobSwiftUI {
     /// Package version
     public static let version = "2.1.0"
 
-    /// Internal constants shared across the package
-    enum Constants {
+    /// Constants shared across the package
+    public enum Constants {
         /// App Open ads expire after 4 hours (Google policy)
-        static let appOpenAdExpirationInterval: TimeInterval = 4 * 60 * 60
+        public static let appOpenAdExpirationInterval: TimeInterval = 4 * 60 * 60
         /// Maximum number of native ads kept in the in-memory cache
-        static let nativeAdCacheMaxSize = 10
+        public static let nativeAdCacheMaxSize = 10
+        /// Default minimum interval (seconds) between native ad requests
+        public static let nativeAdDefaultRequestInterval = 60
     }
     
     /// Configuration for AdMob initialization
@@ -210,6 +212,7 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
     case sdkNotInitialized
     case adExpired
     case invalidConfiguration(String)
+    case rewardNotEarned
     
     public var errorDescription: String? {
         switch self {
@@ -225,6 +228,8 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
             return "The loaded ad has expired and cannot be shown"
         case .invalidConfiguration(let message):
             return "Invalid configuration: \(message)"
+        case .rewardNotEarned:
+            return "The rewarded ad was dismissed before the reward was earned"
         }
     }
 }
