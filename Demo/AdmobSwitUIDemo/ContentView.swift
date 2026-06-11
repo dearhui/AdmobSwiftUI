@@ -85,6 +85,10 @@ struct ContentView: View {
                         BannerStylesView()
                     }
 
+                    NavigationLink("Native Ad Styles (4 templates + custom)") {
+                        NativeAdStylesView()
+                    }
+
                     NavigationLink("Legacy v2 API (deprecated)") {
                         LegacyAPIView()
                     }
@@ -93,14 +97,10 @@ struct ContentView: View {
                     BannerView()
                         .background(Color.red)
 
+                    // v3: 模板會依內容自動決定高度，不再需要外部 frame
                     if !hiddenNative {
                         NativeAdView(nativeViewModel: nativeViewModel, style: .banner)
-                            .frame(height: 80)
                             .background(Color(UIColor.secondarySystemBackground))
-
-//                        NativeAdView(nativeViewModel: nativeViewModel, style: .card)
-//                            .frame(height: 380) // 250 ~ 300
-//                            .background(Color(UIColor.secondarySystemBackground))
                     }
                 }
                 .padding()

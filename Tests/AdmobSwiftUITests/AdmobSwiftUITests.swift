@@ -1,4 +1,5 @@
 import XCTest
+import GoogleMobileAds
 @testable import AdmobSwiftUI
 
 final class AdmobSwiftUITests: XCTestCase {
@@ -213,53 +214,6 @@ final class NativeAdViewModelTests: XCTestCase {
     }
 }
 
-@MainActor
-final class UIViewExtensionsTests: XCTestCase {
-
-    func testHstackVariadicIncludesAllViews() throws {
-        let label1 = UILabel(text: "one")
-        let label2 = UILabel(text: "two")
-        let label3 = UILabel(text: "three")
-
-        let stackView = hstack(label1, label2, label3, spacing: 8)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 3)
-        XCTAssertEqual(stackView.arrangedSubviews, [label1, label2, label3])
-        XCTAssertEqual(stackView.axis, .horizontal)
-        XCTAssertEqual(stackView.spacing, 8)
-    }
-
-    func testHstackArrayIncludesAllViews() throws {
-        let views = [UIView(), UIView()]
-        let stackView = hstack(views, distribution: .fillEqually)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 2)
-        XCTAssertEqual(stackView.axis, .horizontal)
-        XCTAssertEqual(stackView.distribution, .fillEqually)
-    }
-
-    func testStackDefaultsToVertical() throws {
-        let stackView = stack(UIView(), UIView(), spacing: 4, alignment: .center)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 2)
-        XCTAssertEqual(stackView.axis, .vertical)
-        XCTAssertEqual(stackView.spacing, 4)
-        XCTAssertEqual(stackView.alignment, .center)
-        XCTAssertFalse(stackView.translatesAutoresizingMaskIntoConstraints)
-    }
-
-    func testWithWidthAndHeight() throws {
-        let view = UIView()
-        view.withWidth(100).withHeight(50)
-
-        XCTAssertFalse(view.translatesAutoresizingMaskIntoConstraints)
-        let widthConstraint = view.constraints.first { $0.firstAttribute == .width }
-        let heightConstraint = view.constraints.first { $0.firstAttribute == .height }
-        XCTAssertEqual(widthConstraint?.constant, 100)
-        XCTAssertEqual(heightConstraint?.constant, 50)
-    }
-}
-
 final class BannerViewStyleTests: XCTestCase {
 
     func testCollapsiblePlacementRawValuesMatchAdMobParameters() throws {
@@ -302,9 +256,77 @@ final class BannerViewTests: XCTestCase {
 @MainActor
 final class NativeAdViewStyleTests: XCTestCase {
 
-    func testAllStylesProduceNativeAdView() throws {
-        for style in [NativeAdViewStyle.basic, .card, .banner, .largeBanner] {
-            XCTAssertNotNil(style.view, "Style \(style) failed to produce a view")
+    func testStyleCasesAreComplete() throws {
+        XCTAssertEqual(NativeAdViewStyle.allCases, [.basic, .card, .banner, .largeBanner])
+    }
+
+    func testNativeAdViewInitWithAllStyles() throws {
+        let viewModel = NativeAdViewModel()
+        for style in NativeAdViewStyle.allCases {
+            XCTAssertNotNil(NativeAdView(nativeViewModel: viewModel, style: style))
         }
+    }
+}
+
+@MainActor
+final class NativeAdAssetRegistryTests: XCTestCase {
+
+    func testRegisterWiresOutletsToAdView() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let headline = UIView()
+        let cta = UIView()
+        let icon = UIView()
+        registry.register(headline, for: .headline)
+        registry.register(cta, for: .callToAction)
+        registry.register(icon, for: .icon)
+
+        // apply() is coalesced onto the next main runloop turn.
+        await Task.yield()
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertIdentical(adView.headlineView, headline)
+        XCTAssertIdentical(adView.callToActionView, cta)
+        XCTAssertIdentical(adView.iconView, icon)
+    }
+
+    func testUnregisterClearsOutlet() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let headline = UIView()
+        registry.register(headline, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertIdentical(adView.headlineView, headline)
+
+        registry.unregister(headline, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertNil(adView.headlineView)
+    }
+
+    func testUnregisterIgnoresStaleView() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let current = UIView()
+        let stale = UIView()
+        registry.register(current, for: .headline)
+        registry.unregister(stale, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertIdentical(adView.headlineView, current)
+    }
+
+    func testStarRatingImageThresholds() throws {
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 5.0)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 4.5)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 4.0)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 3.5)))
+        XCTAssertNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 3.4)))
+        XCTAssertNil(NativeAdStarRatingView.image(for: nil))
     }
 }
