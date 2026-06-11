@@ -50,6 +50,14 @@ final class AdmobSwiftUITests: XCTestCase {
     func testConstants() throws {
         XCTAssertEqual(AdmobSwiftUI.Constants.appOpenAdExpirationInterval, 4 * 60 * 60)
         XCTAssertEqual(AdmobSwiftUI.Constants.nativeAdCacheMaxSize, 10)
+        XCTAssertEqual(AdmobSwiftUI.Constants.nativeAdDefaultRequestInterval, 60)
+    }
+
+    func testRewardNotEarnedErrorMessage() throws {
+        XCTAssertEqual(
+            AdmobSwiftUIError.rewardNotEarned.errorDescription,
+            "The rewarded ad was dismissed before the reward was earned"
+        )
     }
 }
 
@@ -101,7 +109,7 @@ final class CoordinatorInitializationTests: XCTestCase {
     func testRewardedAdCoordinatorWithCustomAdUnits() throws {
         let coordinator = RewardedAdCoordinator(
             adUnitID: "test-rewarded-id",
-            InterstitialID: "test-rewarded-interstitial-id"
+            interstitialAdUnitID: "test-rewarded-interstitial-id"
         )
         XCTAssertNotNil(coordinator)
     }
@@ -109,7 +117,80 @@ final class CoordinatorInitializationTests: XCTestCase {
     func testAppOpenAdCoordinatorDefaultInit() throws {
         let coordinator = AppOpenAdCoordinator()
         XCTAssertNotNil(coordinator)
-        XCTAssertFalse(coordinator.isAdAvailable)
+        XCTAssertFalse(coordinator.isReady)
+    }
+}
+
+@MainActor
+final class FullScreenAdCoordinatorStateTests: XCTestCase {
+
+    func testInterstitialInitialState() throws {
+        let coordinator = InterstitialAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testInterstitialPresentWithoutLoadThrowsAdNotLoaded() throws {
+        let coordinator = InterstitialAdCoordinator()
+        XCTAssertThrowsError(try coordinator.present(from: UIViewController())) { error in
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        // A failed present must not leave the coordinator in a stuck state.
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAppOpenInitialState() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testAppOpenPresentWithoutLoadThrowsAdNotLoaded() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertThrowsError(try coordinator.present(from: UIViewController())) { error in
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAppOpenAutoReloadsOnForegroundToggle() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertFalse(coordinator.autoReloadsOnForeground)
+        coordinator.autoReloadsOnForeground = true
+        XCTAssertTrue(coordinator.autoReloadsOnForeground)
+        coordinator.autoReloadsOnForeground = false
+        XCTAssertFalse(coordinator.autoReloadsOnForeground)
+    }
+
+    func testRewardedInitialState() throws {
+        let coordinator = RewardedAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testRewardedPresentWithoutLoadThrowsAdNotLoaded() async throws {
+        let coordinator = RewardedAdCoordinator()
+        do {
+            _ = try await coordinator.present(from: UIViewController())
+            XCTFail("Expected present to throw")
+        } catch {
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAdRewardEquatable() throws {
+        let reward = AdReward(amount: 10, type: "coins")
+        XCTAssertEqual(reward, AdReward(amount: 10, type: "coins"))
+        XCTAssertNotEqual(reward, AdReward(amount: 5, type: "coins"))
+        XCTAssertEqual(reward.amount, 10)
+        XCTAssertEqual(reward.type, "coins")
     }
 }
 
