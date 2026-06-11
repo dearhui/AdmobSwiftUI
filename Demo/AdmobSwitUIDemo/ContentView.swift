@@ -81,6 +81,10 @@ struct ContentView: View {
                         hiddenNative.toggle()
                     }
 
+                    NavigationLink("Consent (UMP + ATT)") {
+                        ConsentDemoView()
+                    }
+
                     NavigationLink("Banner Styles (anchored / inline / collapsible)") {
                         BannerStylesView()
                     }
