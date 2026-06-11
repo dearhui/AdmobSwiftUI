@@ -81,14 +81,16 @@ struct ContentView: View {
                         hiddenNative.toggle()
                     }
 
+                    NavigationLink("Banner Styles (anchored / inline / collapsible)") {
+                        BannerStylesView()
+                    }
+
                     NavigationLink("Legacy v2 API (deprecated)") {
                         LegacyAPIView()
                     }
 
-                    // SDK 13 large anchored adaptive banner is 50-150pt tall
-                    // (116pt at iPhone width); 50pt would clip it.
+                    // v3: BannerView 會依 ad size 自動保留高度，不再需要外部 frame
                     BannerView()
-                        .frame(height: 120)
                         .background(Color.red)
 
                     if !hiddenNative {

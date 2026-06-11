@@ -260,6 +260,45 @@ final class UIViewExtensionsTests: XCTestCase {
     }
 }
 
+final class BannerViewStyleTests: XCTestCase {
+
+    func testCollapsiblePlacementRawValuesMatchAdMobParameters() throws {
+        // Extras additionalParameters 的值必須是 "top" / "bottom"（Google 規格）
+        XCTAssertEqual(BannerViewStyle.CollapsiblePlacement.top.rawValue, "top")
+        XCTAssertEqual(BannerViewStyle.CollapsiblePlacement.bottom.rawValue, "bottom")
+    }
+
+    func testStyleEquatable() throws {
+        XCTAssertEqual(BannerViewStyle.anchored, .anchored)
+        XCTAssertEqual(BannerViewStyle.inline, .inline)
+        XCTAssertEqual(
+            BannerViewStyle.collapsible(placement: .bottom),
+            .collapsible(placement: .bottom)
+        )
+        XCTAssertNotEqual(
+            BannerViewStyle.collapsible(placement: .top),
+            .collapsible(placement: .bottom)
+        )
+        XCTAssertNotEqual(BannerViewStyle.anchored, .inline)
+    }
+}
+
+@MainActor
+final class BannerViewTests: XCTestCase {
+
+    func testBannerViewInitWithAllStyles() throws {
+        XCTAssertNotNil(BannerView(style: .anchored))
+        XCTAssertNotNil(BannerView(style: .inline))
+        XCTAssertNotNil(BannerView(style: .collapsible(placement: .top)))
+        XCTAssertNotNil(BannerView(style: .collapsible(placement: .bottom)))
+    }
+
+    func testBannerViewInitWithAdEventClosure() throws {
+        let view = BannerView(adUnitID: "custom-banner-id", style: .anchored) { _ in }
+        XCTAssertNotNil(view)
+    }
+}
+
 @MainActor
 final class NativeAdViewStyleTests: XCTestCase {
 
