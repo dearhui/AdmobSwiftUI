@@ -20,10 +20,18 @@ public struct AdmobSwiftUI {
     
     /// Configuration for AdMob initialization
     public struct Configuration {
+        /// Device identifiers that should always receive test ads.
         public let testDeviceIdentifiers: [String]?
+        /// Maximum content rating of the ads served to this app.
         public let maxAdContentRating: GADMaxAdContentRating?
+        /// When `true`, registers a simulator test-device identifier automatically.
         public let enableDebugMode: Bool
-        
+
+        /// Creates a configuration.
+        /// - Parameters:
+        ///   - testDeviceIdentifiers: Device identifiers that should always receive test ads.
+        ///   - maxAdContentRating: Maximum content rating of served ads.
+        ///   - enableDebugMode: Registers a simulator test-device identifier when `true`.
         public init(
             testDeviceIdentifiers: [String]? = nil,
             maxAdContentRating: GADMaxAdContentRating? = nil,
@@ -245,15 +253,24 @@ public struct AdmobSwiftUI {
 
 /// Unified error types for AdmobSwiftUI
 public enum AdmobSwiftUIError: Error, LocalizedError {
+    /// `present` was called before an ad finished loading.
     case adNotLoaded
+    /// The ad request failed; the underlying SDK error is attached.
     case adLoadFailed(Error)
+    /// The SDK failed to present the ad; the reason is attached.
     case presentationFailed(String)
+    /// The Google Mobile Ads SDK has not been started yet.
     case sdkNotInitialized
+    /// The loaded ad has expired (e.g. an App Open ad older than 4 hours).
     case adExpired
+    /// A configuration value is invalid; details are attached.
     case invalidConfiguration(String)
+    /// The rewarded ad was dismissed before the user earned the reward.
     case rewardNotEarned
+    /// The UMP consent info update or form presentation failed.
     case consentGatheringFailed(Error)
 
+    /// A human-readable description of the error.
     public var errorDescription: String? {
         switch self {
         case .adNotLoaded:
@@ -278,10 +295,15 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
 
 /// Logging levels for AdmobSwiftUI
 public enum AdmobSwiftUILogLevel: Int {
+    /// No logging.
     case none = 0
+    /// Errors only.
     case error = 1
+    /// Errors and warnings.
     case warning = 2
+    /// Errors, warnings, and informational messages.
     case info = 3
+    /// Everything, including verbose debug messages.
     case debug = 4
 }
 

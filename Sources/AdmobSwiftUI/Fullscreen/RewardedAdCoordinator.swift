@@ -18,12 +18,16 @@ public final class RewardedAdCoordinator: NSObject, ObservableObject {
 
     /// Which rewarded format to load.
     public enum AdKind: Sendable {
+        /// A standard rewarded ad (user opts in to watch).
         case rewarded
+        /// A rewarded interstitial ad (shown at natural transitions).
         case rewardedInterstitial
     }
 
+    /// Current lifecycle state of the ad.
     @Published public private(set) var adState: AdState = .idle
 
+    /// Whether an ad is loaded and can be presented right now.
     public var isReady: Bool { adState == .ready }
 
     private var rewardedAd: GoogleMobileAds.RewardedAd?
@@ -32,6 +36,10 @@ public final class RewardedAdCoordinator: NSObject, ObservableObject {
     private let interstitialAdUnitID: String
     private var rewardContinuation: CheckedContinuation<AdReward, any Error>?
 
+    /// Creates a coordinator.
+    /// - Parameters:
+    ///   - adUnitID: Ad unit ID used for ``AdKind/rewarded`` loads.
+    ///   - interstitialAdUnitID: Ad unit ID used for ``AdKind/rewardedInterstitial`` loads.
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.rewarded,
                 interstitialAdUnitID: String = AdmobSwiftUI.AdUnitIDs.rewardedInterstitial) {
         self.adUnitID = adUnitID
@@ -40,6 +48,9 @@ public final class RewardedAdCoordinator: NSObject, ObservableObject {
 
     // MARK: - Async/await API
 
+    /// Loads an ad of the given kind, replacing any previously loaded one.
+    /// A call made while another load is in flight is ignored.
+    /// - Throws: ``AdmobSwiftUIError/adLoadFailed(_:)`` if the request fails.
     public func load(_ kind: AdKind = .rewarded) async throws {
         guard adState != .loading else {
             AdmobSwiftUI.log("Rewarded ad is already loading, request ignored", level: .debug)
@@ -147,16 +158,19 @@ extension RewardedAdCoordinator: GoogleMobileAds.FullScreenContentDelegate {
 
 // MARK: - Deprecated v2 API (will be removed in 4.0)
 extension RewardedAdCoordinator {
+    /// v2 initializer kept for source compatibility. Replaced by `init(adUnitID:interstitialAdUnitID:)`.
     @available(*, deprecated, renamed: "init(adUnitID:interstitialAdUnitID:)", message: "Use `init(adUnitID:interstitialAdUnitID:)` instead. Will be removed in 4.0.")
     public convenience init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.rewarded, InterstitialID: String) {
         self.init(adUnitID: adUnitID, interstitialAdUnitID: InterstitialID)
     }
 
+    /// Fire-and-forget load. Replaced by `try await load(_:)`.
     @available(*, deprecated, renamed: "load(_:)", message: "Use `try await load()` instead. Will be removed in 4.0.")
     public func loadAd() {
         Task { try? await load() }
     }
 
+    /// Loads and returns the raw SDK ad object. Replaced by ``load(_:)`` + ``present(from:)``.
     @available(*, deprecated, message: "Use `load()` and `present(from:)` instead. Will be removed in 4.0.")
     public func loadRewardedAd() async throws -> GoogleMobileAds.RewardedAd {
         try await load(.rewarded)
@@ -166,6 +180,7 @@ extension RewardedAdCoordinator {
         return ad
     }
 
+    /// Loads and returns the raw SDK ad object. Replaced by ``load(_:)`` + ``present(from:)``.
     @available(*, deprecated, message: "Use `load(.rewardedInterstitial)` and `present(from:)` instead. Will be removed in 4.0.")
     public func loadInterstitialAd() async throws -> GoogleMobileAds.RewardedInterstitialAd {
         try await load(.rewardedInterstitial)
@@ -175,6 +190,7 @@ extension RewardedAdCoordinator {
         return ad
     }
 
+    /// Callback-based presentation. Replaced by `try await present(from:)`, which returns the ``AdReward``.
     @available(*, deprecated, message: "Use `try await present(from:)` instead. Will be removed in 4.0.")
     public func showAd(from viewController: UIViewController, userDidEarnRewardHandler completion: @escaping (Int) -> Void) {
         guard let rewardedAd else {

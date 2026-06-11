@@ -55,9 +55,12 @@ public struct ConsentDebugSettings: Sendable, Equatable {
         case other
     }
 
+    /// Simulated geography for consent testing.
     public var geography: Geography
+    /// UMP hashed device IDs that should receive debug consent behavior.
     public var testDeviceIdentifiers: [String]
 
+    /// Creates debug settings.
     public init(geography: Geography = .disabled, testDeviceIdentifiers: [String] = []) {
         self.geography = geography
         self.testDeviceIdentifiers = testDeviceIdentifiers
@@ -93,7 +96,10 @@ public struct ConsentDebugSettings: Sendable, Equatable {
 @MainActor
 public final class ConsentManager: ObservableObject {
 
+    /// Shared instance backed by the real UMP SDK.
     public static let shared = ConsentManager()
+
+    private let service: any ConsentService
 
     /// The user's current consent status. Updated after every consent operation.
     @Published public private(set) var consentStatus: ConsentStatus = .unknown
@@ -101,17 +107,20 @@ public final class ConsentManager: ObservableObject {
     /// Whether ads can be requested. `true` once consent has been gathered
     /// (or determined unnecessary), including values persisted from a previous session.
     public var canRequestAds: Bool {
-        ConsentInformation.shared.canRequestAds
+        service.canRequestAds
     }
 
     /// Whether the app must offer the user an entry point (e.g. in Settings)
     /// to modify their privacy options.
     public var isPrivacyOptionsRequired: Bool {
-        ConsentInformation.shared.privacyOptionsRequirementStatus == .required
+        service.isPrivacyOptionsRequired
     }
 
-    private init() {
-        consentStatus = ConsentStatus(ConsentInformation.shared.consentStatus)
+    /// Internal so tests can inject a mock `ConsentService`;
+    /// production code always goes through `shared`.
+    init(service: any ConsentService = UMPConsentService()) {
+        self.service = service
+        consentStatus = service.consentStatus
     }
 
     /// Runs the full UMP consent flow: requests a consent info update, then
@@ -132,17 +141,14 @@ public final class ConsentManager: ObservableObject {
         debugSettings: ConsentDebugSettings? = nil,
         tagForUnderAgeOfConsent: Bool = false
     ) async throws {
-        let parameters = RequestParameters()
-        parameters.isTaggedForUnderAgeOfConsent = tagForUnderAgeOfConsent
-        if let debugSettings {
-            parameters.debugSettings = debugSettings.umpDebugSettings
-        }
-
         defer { syncStatus() }
         do {
-            try await ConsentInformation.shared.requestConsentInfoUpdate(with: parameters)
+            try await service.requestConsentInfoUpdate(
+                tagForUnderAgeOfConsent: tagForUnderAgeOfConsent,
+                debugSettings: debugSettings
+            )
             syncStatus()
-            try await ConsentForm.loadAndPresentIfRequired(from: viewController)
+            try await service.loadAndPresentConsentFormIfRequired(from: viewController)
             AdmobSwiftUI.log("Consent gathered. status=\(consentStatus), canRequestAds=\(canRequestAds)", level: .info)
         } catch {
             AdmobSwiftUI.log("Consent gathering failed: \(error.localizedDescription)", level: .error)
@@ -160,7 +166,7 @@ public final class ConsentManager: ObservableObject {
     public func presentPrivacyOptionsForm(from viewController: UIViewController? = nil) async throws {
         defer { syncStatus() }
         do {
-            try await ConsentForm.presentPrivacyOptionsForm(from: viewController)
+            try await service.presentPrivacyOptionsForm(from: viewController)
         } catch {
             AdmobSwiftUI.log("Privacy options form failed: \(error.localizedDescription)", level: .error)
             throw AdmobSwiftUIError.consentGatheringFailed(error)
@@ -183,11 +189,11 @@ public final class ConsentManager: ObservableObject {
     /// Clears all consent state from persistent storage. Intended for debugging
     /// and testing only — never call this in production flows.
     public func reset() {
-        ConsentInformation.shared.reset()
+        service.reset()
         syncStatus()
     }
 
     private func syncStatus() {
-        consentStatus = ConsentStatus(ConsentInformation.shared.consentStatus)
+        consentStatus = service.consentStatus
     }
 }

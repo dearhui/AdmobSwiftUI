@@ -5,14 +5,23 @@ import SwiftUI
 /// registered on the underlying `GADNativeAdView` so the SDK attributes
 /// clicks on them.
 public enum NativeAdAssetKind: CaseIterable, Sendable {
+    /// The ad headline. Google requires it to be displayed.
     case headline
+    /// The call-to-action text (e.g. "Install").
     case callToAction
+    /// The advertiser's icon image.
     case icon
+    /// The ad body text.
     case body
+    /// The app store name (app-install ads).
     case store
+    /// The price string (app-install ads).
     case price
+    /// A large ad image.
     case image
+    /// The app's star rating (app-install ads).
     case starRating
+    /// The advertiser name.
     case advertiser
 }
 
@@ -221,6 +230,7 @@ public struct AdBadge: View {
     let backgroundColor: Color
     let cornerRadius: CGFloat
 
+    /// Creates a badge with the given colors and corner radius.
     public init(foregroundColor: Color = .white,
                 backgroundColor: Color = .orange,
                 cornerRadius: CGFloat = 2) {

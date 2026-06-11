@@ -8,28 +8,38 @@
 import SwiftUI
 @preconcurrency import GoogleMobileAds
 
+/// Loads native ads and publishes them for ``NativeAdView`` /
+/// ``AdmobNativeAdContainer``. Loaded ads are cached per ad unit ID and shared
+/// across view model instances, with requests throttled by ``requestInterval``.
 @MainActor
 public class NativeAdViewModel: NSObject, ObservableObject {
+    /// The most recently loaded (or cached) native ad; `nil` until a load succeeds.
     @Published public var nativeAd: GoogleMobileAds.NativeAd?
+    /// Whether an ad request is currently in flight.
     @Published public var isLoading: Bool = false
     private var adLoader: GoogleMobileAds.AdLoader!
     private var adUnitID: String
-    private var lastRequestTime: Date?
     private var loadContinuation: CheckedContinuation<Void, any Error>?
+    /// Minimum interval (seconds) between ad requests for the same ad unit;
+    /// `load()` calls inside the window return the cached ad instead.
     public var requestInterval: Int
-    private static let maxCacheSize = AdmobSwiftUI.Constants.nativeAdCacheMaxSize
-    // Cache is isolated to the main actor along with the rest of the class.
-    private static var cachedAds: [String: GoogleMobileAds.NativeAd] = [:]
-    private static var lastRequestTimes: [String: Date] = [:]
+    // Shared across view model instances; isolated to the main actor.
+    private static let cache = AdCache<GoogleMobileAds.NativeAd>(
+        maxSize: AdmobSwiftUI.Constants.nativeAdCacheMaxSize
+    )
 
+    /// Creates a view model, picking up any cached ad for the ad unit.
+    /// - Parameters:
+    ///   - adUnitID: The native ad unit ID. Defaults to the
+    ///     environment-appropriate ID from ``AdmobSwiftUI/AdUnitIDs``.
+    ///   - requestInterval: Minimum interval (seconds) between requests.
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.native,
                 requestInterval: Int = AdmobSwiftUI.Constants.nativeAdDefaultRequestInterval) {
         self.adUnitID = adUnitID
         self.requestInterval = requestInterval
         super.init()
 
-        self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
-        self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
+        self.nativeAd = Self.cache.value(for: adUnitID)
     }
 
     /// Loads a native ad and suspends until the request finishes.
@@ -41,8 +51,9 @@ public class NativeAdViewModel: NSObject, ObservableObject {
     public func load() async throws {
         let now = Date()
 
-        if nativeAd != nil, let lastRequest = lastRequestTime, now.timeIntervalSince(lastRequest) < Double(requestInterval) {
-            AdmobSwiftUI.log("The last request was made less than \(requestInterval / 60) minutes ago. New request is canceled.", level: .debug)
+        if Self.cache.hasFreshValue(for: adUnitID, within: TimeInterval(requestInterval), now: now) {
+            AdmobSwiftUI.log("The last request was made less than \(requestInterval) seconds ago. New request is canceled.", level: .debug)
+            nativeAd = Self.cache.value(for: adUnitID)
             return
         }
 
@@ -52,8 +63,7 @@ public class NativeAdViewModel: NSObject, ObservableObject {
         }
 
         isLoading = true
-        lastRequestTime = now
-        NativeAdViewModel.lastRequestTimes[adUnitID] = now
+        Self.cache.markRequested(adUnitID, at: now)
 
         let adViewOptions = GoogleMobileAds.NativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
@@ -73,8 +83,7 @@ public class NativeAdViewModel: NSObject, ObservableObject {
         nativeAd.delegate = self
         self.isLoading = false
 
-        // Cache the ad safely with size management
-        Self.setCachedAd(nativeAd, for: adUnitID)
+        Self.cache.store(nativeAd, for: adUnitID)
         nativeAd.mediaContent.videoController.delegate = self
 
         loadContinuation?.resume()
@@ -86,29 +95,11 @@ public class NativeAdViewModel: NSObject, ObservableObject {
         loadContinuation?.resume(throwing: AdmobSwiftUIError.adLoadFailed(error))
         loadContinuation = nil
     }
-
-    // MARK: - Cache Management
-    private static func setCachedAd(_ ad: GoogleMobileAds.NativeAd, for key: String) {
-        // Clean cache if it's getting too large
-        cleanupCacheIfNeeded()
-
-        cachedAds[key] = ad
-        lastRequestTimes[key] = Date()
-    }
-
-    private static func cleanupCacheIfNeeded() {
-        guard cachedAds.count >= maxCacheSize else { return }
-
-        // Remove oldest cached ad
-        if let oldestKey = lastRequestTimes.min(by: { $0.value < $1.value })?.key {
-            cachedAds.removeValue(forKey: oldestKey)
-            lastRequestTimes.removeValue(forKey: oldestKey)
-        }
-    }
 }
 
 // MARK: - Deprecated v2 API (will be removed in 4.0)
 extension NativeAdViewModel {
+    /// Fire-and-forget load. Replaced by `try await load()`.
     @available(*, deprecated, renamed: "load()", message: "Use `try await load()` instead. Will be removed in 4.0.")
     public func refreshAd() {
         Task { try? await load() }

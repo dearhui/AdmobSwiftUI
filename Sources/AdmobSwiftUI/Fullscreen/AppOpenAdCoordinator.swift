@@ -9,8 +9,15 @@
 import SwiftUI
 import UIKit
 
+/// Coordinator for App Open ads, conforming to ``FullScreenAdCoordinator``.
+///
+/// Loaded ads expire after 4 hours (Google policy); an expired ad reports
+/// `isReady == false` and `present(from:)` throws ``AdmobSwiftUIError/adExpired``.
+/// For the typical scene-phase flow, enable ``autoReloadsOnForeground`` and call
+/// ``presentIfAvailable(from:)`` when the app becomes active.
 @MainActor
 public final class AppOpenAdCoordinator: NSObject, ObservableObject, FullScreenAdCoordinator {
+    /// Current lifecycle state of the ad.
     @Published public private(set) var adState: AdState = .idle
 
     /// When enabled, the coordinator automatically reloads an ad after the
@@ -26,6 +33,9 @@ public final class AppOpenAdCoordinator: NSObject, ObservableObject, FullScreenA
     private var loadTime: Date?
     private var foregroundObserver: (any NSObjectProtocol)?
 
+    /// Creates a coordinator.
+    /// - Parameter adUnitID: The App Open ad unit ID. Defaults to the
+    ///   environment-appropriate ID from ``AdmobSwiftUI/AdUnitIDs``.
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.appOpen) {
         // Validate ad unit ID
         guard !adUnitID.isEmpty else {
@@ -48,10 +58,14 @@ public final class AppOpenAdCoordinator: NSObject, ObservableObject, FullScreenA
 
     // MARK: - FullScreenAdCoordinator
 
+    /// Whether an ad is loaded, unexpired, and can be presented right now.
     public var isReady: Bool {
         adState == .ready && !isAdExpired
     }
 
+    /// Loads an App Open ad, replacing any previously loaded one.
+    /// A call made while another load is in flight is ignored.
+    /// - Throws: ``AdmobSwiftUIError/adLoadFailed(_:)`` if the request fails.
     public func load() async throws {
         guard adState != .loading else {
             AdmobSwiftUI.log("App open ad is already loading, request ignored", level: .debug)
@@ -73,6 +87,9 @@ public final class AppOpenAdCoordinator: NSObject, ObservableObject, FullScreenA
         }
     }
 
+    /// Presents the loaded App Open ad.
+    /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready,
+    ///   ``AdmobSwiftUIError/adExpired`` if the loaded ad is older than 4 hours.
     public func present(from viewController: UIViewController) throws {
         guard let appOpenAd else {
             throw AdmobSwiftUIError.adNotLoaded
@@ -171,21 +188,25 @@ extension AppOpenAdCoordinator: GoogleMobileAds.FullScreenContentDelegate {
 
 // MARK: - Deprecated v2 API (will be removed in 4.0)
 extension AppOpenAdCoordinator {
+    /// Replaced by ``isReady``.
     @available(*, deprecated, renamed: "isReady", message: "Use `isReady` instead. Will be removed in 4.0.")
     public var isAdAvailable: Bool {
         isReady
     }
 
+    /// Fire-and-forget load. Replaced by `try await load()`.
     @available(*, deprecated, renamed: "load()", message: "Use `try await load()` instead. Will be removed in 4.0.")
     public func loadAd() {
         Task { try? await load() }
     }
 
+    /// Presents the loaded ad. Replaced by ``present(from:)``.
     @available(*, deprecated, renamed: "present(from:)", message: "Use `present(from:)` or `presentIfAvailable(from:)` instead. Will be removed in 4.0.")
     public func showAd(from viewController: UIViewController) throws {
         try present(from: viewController)
     }
 
+    /// Loads and returns the raw SDK ad object. Replaced by ``load()`` + ``present(from:)``.
     @available(*, deprecated, message: "Use `load()` and `present(from:)` instead. Will be removed in 4.0.")
     public func loadAppOpenAd() async throws -> GoogleMobileAds.AppOpenAd {
         try await load()
@@ -195,6 +216,7 @@ extension AppOpenAdCoordinator {
         return ad
     }
 
+    /// Loads and returns the raw SDK ad object. Replaced by ``load()`` + ``present(from:)``.
     @available(*, deprecated, message: "Use `load()` and `present(from:)` instead. Will be removed in 4.0.")
     public func loadAdAsync() async throws -> GoogleMobileAds.AppOpenAd {
         try await loadAppOpenAd()
