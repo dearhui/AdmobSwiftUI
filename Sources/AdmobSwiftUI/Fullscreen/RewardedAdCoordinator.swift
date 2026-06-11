@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
-import GoogleMobileAds
+@preconcurrency import GoogleMobileAds
 
+@MainActor
 public class RewardedAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
     private var rewardedInterstitialAd: GoogleMobileAds.RewardedInterstitialAd?
     private var rewardedAd: GoogleMobileAds.RewardedAd?
@@ -21,40 +22,31 @@ public class RewardedAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentD
     
     public func loadAd() {
         clean()
-        GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-            self.rewardedAd = ad
-            self.rewardedAd?.fullScreenContentDelegate = self
-        })
+        Task {
+            do {
+                let ad = try await GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request())
+                self.rewardedAd = ad
+                ad.fullScreenContentDelegate = self
+            } catch {
+                AdmobSwiftUI.log("Failed to load rewarded ad: \(error.localizedDescription)", level: .error)
+            }
+        }
     }
     
     // MARK: - async/await
     
     public func loadInterstitialAd() async throws -> GoogleMobileAds.RewardedInterstitialAd {
         clean()
-        return try await withCheckedThrowingContinuation { continuation in
-            GoogleMobileAds.RewardedInterstitialAd.load(with: InterstitialID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let ad = ad {
-                    ad.fullScreenContentDelegate = self
-                    continuation.resume(returning: ad)
-                }
-            })
-        }
+        let ad = try await GoogleMobileAds.RewardedInterstitialAd.load(with: InterstitialID, request: GoogleMobileAds.Request())
+        ad.fullScreenContentDelegate = self
+        return ad
     }
 
     public func loadRewardedAd() async throws -> GoogleMobileAds.RewardedAd {
         clean()
-        return try await withCheckedThrowingContinuation { continuation in
-            GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let ad = ad {
-                    ad.fullScreenContentDelegate = self
-                    continuation.resume(returning: ad)
-                }
-            })
-        }
+        let ad = try await GoogleMobileAds.RewardedAd.load(with: adUnitID, request: GoogleMobileAds.Request())
+        ad.fullScreenContentDelegate = self
+        return ad
     }
     
     private func clean() {

@@ -68,8 +68,10 @@ struct ContentView: View {
                     hiddenNative.toggle()
                 }
                 
+                // SDK 13 large anchored adaptive banner is 50-150pt tall
+                // (116pt at iPhone width); 50pt would clip it.
                 BannerView()
-                    .frame(height: 50)
+                    .frame(height: 120)
                     .background(Color.red)
                 
                 if !hiddenNative {

@@ -83,6 +83,7 @@ final class AdUnitIDsTests: XCTestCase {
     }
 }
 
+@MainActor
 final class CoordinatorInitializationTests: XCTestCase {
 
     func testInterstitialAdCoordinatorDefaultInit() throws {
@@ -112,6 +113,7 @@ final class CoordinatorInitializationTests: XCTestCase {
     }
 }
 
+@MainActor
 final class NativeAdViewModelTests: XCTestCase {
 
     func testNativeAdViewModelInitialization() throws {
@@ -130,6 +132,7 @@ final class NativeAdViewModelTests: XCTestCase {
     }
 }
 
+@MainActor
 final class UIViewExtensionsTests: XCTestCase {
 
     func testHstackVariadicIncludesAllViews() throws {
@@ -176,6 +179,7 @@ final class UIViewExtensionsTests: XCTestCase {
     }
 }
 
+@MainActor
 final class NativeAdViewStyleTests: XCTestCase {
 
     func testAllStylesProduceNativeAdView() throws {

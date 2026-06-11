@@ -5,9 +5,10 @@
 //  Created by minghui on 2023/6/13.
 //
 
-import GoogleMobileAds
+@preconcurrency import GoogleMobileAds
 import SwiftUI
 
+@MainActor
 public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenContentDelegate {
     private var interstitial: GoogleMobileAds.InterstitialAd?
     private let adUnitID: String
@@ -19,18 +20,16 @@ public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenCont
     
     public func loadAd() {
         clean()
-        GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-            if let error = error {
-                AdmobSwiftUI.log("Failed to load interstitial ad: \(error.localizedDescription)", level: .error)
-                return
-            }
-            
-            if let ad = ad {
+        Task {
+            do {
+                let ad = try await GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request())
                 self.interstitial = ad
                 ad.fullScreenContentDelegate = self
                 AdmobSwiftUI.log("Interstitial ad loaded successfully", level: .debug)
+            } catch {
+                AdmobSwiftUI.log("Failed to load interstitial ad: \(error.localizedDescription)", level: .error)
             }
-        })
+        }
     }
     
     public func showAd(from viewController: UIViewController) throws {
@@ -44,17 +43,10 @@ public class InterstitialAdCoordinator: NSObject, GoogleMobileAds.FullScreenCont
     // MARK: - Async/await
     public func loadInterstitialAd() async throws -> GoogleMobileAds.InterstitialAd {
         clean()
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request(), completionHandler: { ad, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else if let ad = ad {
-                    ad.fullScreenContentDelegate = self
-                    continuation.resume(returning: ad)
-                }
-            })
-        }
+
+        let ad = try await GoogleMobileAds.InterstitialAd.load(with: adUnitID, request: GoogleMobileAds.Request())
+        ad.fullScreenContentDelegate = self
+        return ad
     }
     
     

@@ -14,6 +14,7 @@ public enum NativeAdViewStyle {
     case banner
     case largeBanner
     
+    @MainActor
     var view: GoogleMobileAds.NativeAdView {
         switch self {
         case .basic:
@@ -27,6 +28,7 @@ public enum NativeAdViewStyle {
         }
     }
     
+    @MainActor
     func makeNibView(name: String) -> GoogleMobileAds.NativeAdView {
         let bundle = Bundle.module
         let nib = UINib(nibName: name, bundle: bundle)

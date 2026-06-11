@@ -8,6 +8,7 @@
 import SwiftUI
 import GoogleMobileAds
 
+@MainActor
 public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.NativeAdLoaderDelegate {
     @Published public var nativeAd: GoogleMobileAds.NativeAd?
     @Published public var isLoading: Bool = false
@@ -15,21 +16,18 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
     private var adUnitID: String
     private var lastRequestTime: Date?
     public var requestInterval: Int
-    private static let cacheQueue = DispatchQueue(label: "com.admobswiftui.native.cache", attributes: .concurrent)
     private static let maxCacheSize = AdmobSwiftUI.Constants.nativeAdCacheMaxSize
+    // Cache is isolated to the main actor along with the rest of the class.
     private static var cachedAds: [String: GoogleMobileAds.NativeAd] = [:]
     private static var lastRequestTimes: [String: Date] = [:]
-    
+
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.native, requestInterval: Int = 1 * 60) {
         self.adUnitID = adUnitID
         self.requestInterval = requestInterval
         super.init()
-        
-        // Get cached ad safely
-        NativeAdViewModel.cacheQueue.sync {
-            self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
-            self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
-        }
+
+        self.nativeAd = NativeAdViewModel.cachedAds[adUnitID]
+        self.lastRequestTime = NativeAdViewModel.lastRequestTimes[adUnitID]
     }
     
     public func refreshAd() {
@@ -47,10 +45,8 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
 
         isLoading = true
         lastRequestTime = now
-        NativeAdViewModel.cacheQueue.async(flags: .barrier) {
-            NativeAdViewModel.lastRequestTimes[self.adUnitID] = now
-        }
-        
+        NativeAdViewModel.lastRequestTimes[adUnitID] = now
+
         let adViewOptions = GoogleMobileAds.NativeAdViewAdOptions()
         adViewOptions.preferredAdChoicesPosition = .topRightCorner
         adLoader = GoogleMobileAds.AdLoader(adUnitID: adUnitID, rootViewController: nil, adTypes: [.native], options: [adViewOptions])
@@ -75,13 +71,11 @@ public class NativeAdViewModel: NSObject, ObservableObject, GoogleMobileAds.Nati
     
     // MARK: - Cache Management
     private static func setCachedAd(_ ad: GoogleMobileAds.NativeAd, for key: String) {
-        cacheQueue.async(flags: .barrier) {
-            // Clean cache if it's getting too large
-            cleanupCacheIfNeeded()
-            
-            cachedAds[key] = ad
-            lastRequestTimes[key] = Date()
-        }
+        // Clean cache if it's getting too large
+        cleanupCacheIfNeeded()
+
+        cachedAds[key] = ad
+        lastRequestTimes[key] = Date()
     }
     
     private static func cleanupCacheIfNeeded() {
