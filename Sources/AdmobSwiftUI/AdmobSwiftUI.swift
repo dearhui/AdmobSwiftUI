@@ -35,25 +35,64 @@ public struct AdmobSwiftUI {
         }
     }
     
-    /// Initialize AdmobSwiftUI with configuration
+    /// Initialize AdmobSwiftUI with configuration, integrating the UMP consent flow.
+    ///
+    /// With `.gatherFirst` (default), the full UMP consent flow runs first and the
+    /// Google Mobile Ads SDK only starts once `ConsentManager.shared.canRequestAds`
+    /// is `true`. A consent flow failure (e.g. network error) does not block startup
+    /// as long as a previous session already established that ads can be requested.
+    ///
+    /// If consent could not be established, the SDK is not started — calling this
+    /// method again later (e.g. on next foreground) retries the whole flow.
+    ///
+    /// - Parameters:
+    ///   - configuration: AdMob configuration settings
+    ///   - consentMode: How to handle user consent before starting the SDK
+    public static func initialize(
+        with configuration: Configuration = Configuration(),
+        consentMode: ConsentMode = .gatherFirst
+    ) async {
+        applyRequestConfiguration(configuration)
+
+        if consentMode == .gatherFirst {
+            do {
+                try await ConsentManager.shared.gatherConsent()
+            } catch {
+                log("Continuing initialization despite consent failure: \(error.localizedDescription)", level: .warning)
+            }
+            guard await ConsentManager.shared.canRequestAds else {
+                log("Cannot request ads without consent; SDK start deferred. Call initialize again to retry.", level: .warning)
+                return
+            }
+        }
+
+        let status = await MobileAds.shared.start()
+        log("Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)", level: .info)
+    }
+
+    /// Initialize AdmobSwiftUI with configuration (no consent handling)
     /// - Parameter configuration: AdMob configuration settings
+    @available(*, deprecated, message: "Use the async initialize(with:consentMode:) instead, which integrates the UMP consent flow required for GDPR compliance.")
     public static func initialize(with configuration: Configuration = Configuration()) {
+        applyRequestConfiguration(configuration)
+        MobileAds.shared.start { status in
+            log("Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)", level: .info)
+        }
+    }
+
+    private static func applyRequestConfiguration(_ configuration: Configuration) {
         let requestConfiguration = MobileAds.shared.requestConfiguration
-        
+
         // Configure test devices
         if configuration.enableDebugMode {
             requestConfiguration.testDeviceIdentifiers = ["ca-app-pub-3940256099942544~1458002511"]
         } else if let testDevices = configuration.testDeviceIdentifiers {
             requestConfiguration.testDeviceIdentifiers = testDevices
         }
-        
+
         // Configure max ad content rating
         if let maxRating = configuration.maxAdContentRating {
             requestConfiguration.maxAdContentRating = maxRating
-        }
-        
-        MobileAds.shared.start { status in
-            log("Google Mobile Ads SDK initialized with status: \(status.adapterStatusesByClassName)", level: .info)
         }
     }
     
@@ -213,7 +252,8 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
     case adExpired
     case invalidConfiguration(String)
     case rewardNotEarned
-    
+    case consentGatheringFailed(Error)
+
     public var errorDescription: String? {
         switch self {
         case .adNotLoaded:
@@ -230,6 +270,8 @@ public enum AdmobSwiftUIError: Error, LocalizedError {
             return "Invalid configuration: \(message)"
         case .rewardNotEarned:
             return "The rewarded ad was dismissed before the reward was earned"
+        case .consentGatheringFailed(let error):
+            return "Failed to gather user consent: \(error.localizedDescription)"
         }
     }
 }

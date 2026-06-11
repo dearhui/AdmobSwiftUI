@@ -6,6 +6,8 @@
 	<string>Your data will be used to deliver personalized ads to you.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>GADDelayAppMeasurementInit</key>
+	<true/>
     <key>SKAdNetworkItems</key>
     <array>
       <dict>
