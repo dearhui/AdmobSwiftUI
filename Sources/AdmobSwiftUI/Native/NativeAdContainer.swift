@@ -25,6 +25,10 @@ public struct AdmobNativeAdContainer<Content: View>: View {
     private let ad: GoogleMobileAds.NativeAd
     private let content: (NativeAdAssets) -> Content
 
+    /// Creates the container.
+    /// - Parameters:
+    ///   - ad: The loaded native ad to render.
+    ///   - content: Builds the SwiftUI layout from the ad's ``NativeAdAssets``.
     public init(ad: GoogleMobileAds.NativeAd,
                 @ViewBuilder content: @escaping (NativeAdAssets) -> Content) {
         self.ad = ad

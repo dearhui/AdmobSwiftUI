@@ -22,9 +22,12 @@ public enum AdState: Sendable, Equatable {
 
 /// Reward earned from a rewarded ad.
 public struct AdReward: Sendable, Equatable {
+    /// Reward amount, as configured for the ad unit.
     public let amount: Int
+    /// Reward type (e.g. "coins"), as configured for the ad unit.
     public let type: String
 
+    /// Creates a reward value.
     public init(amount: Int, type: String) {
         self.amount = amount
         self.type = type

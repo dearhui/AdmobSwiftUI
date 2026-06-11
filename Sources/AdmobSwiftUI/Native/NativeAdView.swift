@@ -10,6 +10,10 @@ public struct NativeAdView: View {
     @ObservedObject var nativeViewModel: NativeAdViewModel
     var style: NativeAdViewStyle
 
+    /// Creates the view.
+    /// - Parameters:
+    ///   - nativeViewModel: View model that loads and publishes the native ad.
+    ///   - style: Which built-in template to render.
     public init(nativeViewModel: NativeAdViewModel, style: NativeAdViewStyle = .basic) {
         self.nativeViewModel = nativeViewModel
         self.style = style

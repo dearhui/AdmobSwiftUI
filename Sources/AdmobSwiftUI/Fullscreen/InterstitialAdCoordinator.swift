@@ -8,13 +8,22 @@
 @preconcurrency import GoogleMobileAds
 import SwiftUI
 
+/// Coordinator for interstitial ads, conforming to ``FullScreenAdCoordinator``.
+///
+/// Load with `try await load()`, then present with `present(from:)` — or use
+/// `loadAndPresent(from:)` to do both. Include an ``AdViewControllerRepresentable``
+/// in the view hierarchy to obtain a presenting view controller.
 @MainActor
 public final class InterstitialAdCoordinator: NSObject, ObservableObject, FullScreenAdCoordinator {
+    /// Current lifecycle state of the ad.
     @Published public private(set) var adState: AdState = .idle
 
     private var interstitial: GoogleMobileAds.InterstitialAd?
     private let adUnitID: String
 
+    /// Creates a coordinator.
+    /// - Parameter adUnitID: The interstitial ad unit ID. Defaults to the
+    ///   environment-appropriate ID from ``AdmobSwiftUI/AdUnitIDs``.
     public init(adUnitID: String = AdmobSwiftUI.AdUnitIDs.interstitial) {
         self.adUnitID = adUnitID
         super.init()
@@ -22,6 +31,9 @@ public final class InterstitialAdCoordinator: NSObject, ObservableObject, FullSc
 
     // MARK: - FullScreenAdCoordinator
 
+    /// Loads an interstitial ad, replacing any previously loaded one.
+    /// A call made while another load is in flight is ignored.
+    /// - Throws: ``AdmobSwiftUIError/adLoadFailed(_:)`` if the request fails.
     public func load() async throws {
         guard adState != .loading else {
             AdmobSwiftUI.log("Interstitial ad is already loading, request ignored", level: .debug)
@@ -42,6 +54,8 @@ public final class InterstitialAdCoordinator: NSObject, ObservableObject, FullSc
         }
     }
 
+    /// Presents the loaded interstitial ad.
+    /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready.
     public func present(from viewController: UIViewController) throws {
         guard let interstitial else {
             throw AdmobSwiftUIError.adNotLoaded
@@ -80,16 +94,19 @@ extension InterstitialAdCoordinator: GoogleMobileAds.FullScreenContentDelegate {
 
 // MARK: - Deprecated v2 API (will be removed in 4.0)
 extension InterstitialAdCoordinator {
+    /// Fire-and-forget load. Replaced by `try await load()`.
     @available(*, deprecated, renamed: "load()", message: "Use `try await load()` instead. Will be removed in 4.0.")
     public func loadAd() {
         Task { try? await load() }
     }
 
+    /// Presents the loaded ad. Replaced by ``present(from:)``.
     @available(*, deprecated, renamed: "present(from:)", message: "Use `present(from:)` instead. Will be removed in 4.0.")
     public func showAd(from viewController: UIViewController) throws {
         try present(from: viewController)
     }
 
+    /// Loads and returns the raw SDK ad object. Replaced by ``load()`` + ``present(from:)``.
     @available(*, deprecated, message: "Use `load()` and `present(from:)` instead. Will be removed in 4.0.")
     public func loadInterstitialAd() async throws -> GoogleMobileAds.InterstitialAd {
         try await load()

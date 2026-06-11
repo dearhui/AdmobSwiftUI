@@ -30,17 +30,13 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                // Stay on Swift 5 mode for now: surface strict-concurrency issues as
-                // warnings first; the switch to Swift 6 mode lands with the test rebuild.
-                .swiftLanguageMode(.v5),
-                .enableUpcomingFeature("StrictConcurrency"),
+                .swiftLanguageMode(.v6),
             ]),
         .testTarget(
             name: "AdmobSwiftUITests",
             dependencies: ["AdmobSwiftUI"],
             swiftSettings: [
-                .swiftLanguageMode(.v5),
-                .enableUpcomingFeature("StrictConcurrency"),
+                .swiftLanguageMode(.v6),
             ]),
     ]
 )
