@@ -7,11 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		057E5BF1ACD300FF3933170C /* ConsentDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8710092188B485C0DAA46F5C /* ConsentDemoView.swift */; };
 		1C415EE62A37D10A00D03783 /* AdmobSwitUIDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C415EE52A37D10A00D03783 /* AdmobSwitUIDemoApp.swift */; };
 		1C415EE82A37D10A00D03783 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C415EE72A37D10A00D03783 /* ContentView.swift */; };
 		1C415EEA2A37D10B00D03783 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C415EE92A37D10B00D03783 /* Assets.xcassets */; };
 		1C415EEE2A37D10B00D03783 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1C415EED2A37D10B00D03783 /* Preview Assets.xcassets */; };
 		1CFF1F812BA5F29A00BD8164 /* AdmobSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1CFF1F802BA5F29A00BD8164 /* AdmobSwiftUI */; };
+		7C5249A9F34D5E8BE8520C31 /* NativeAdStylesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBAFD8D16DBDEF6AFBD21821 /* NativeAdStylesView.swift */; };
+		7D9BB906D7A62A7AD41C2EF0 /* BannerStylesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 245DBBAC71611D08BECFF1C4 /* BannerStylesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +25,9 @@
 		1C415EEB2A37D10B00D03783 /* AdmobSwitUIDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AdmobSwitUIDemo.entitlements; sourceTree = "<group>"; };
 		1C415EED2A37D10B00D03783 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1C415EFC2A37D5EA00D03783 /* Info-demo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-demo.plist"; sourceTree = "<group>"; };
+		245DBBAC71611D08BECFF1C4 /* BannerStylesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BannerStylesView.swift; sourceTree = "<group>"; };
+		8710092188B485C0DAA46F5C /* ConsentDemoView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConsentDemoView.swift; sourceTree = "<group>"; };
+		FBAFD8D16DBDEF6AFBD21821 /* NativeAdStylesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NativeAdStylesView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +68,9 @@
 				1C415EEB2A37D10B00D03783 /* AdmobSwitUIDemo.entitlements */,
 				1C415EEC2A37D10B00D03783 /* Preview Content */,
 				1C415EFC2A37D5EA00D03783 /* Info-demo.plist */,
+				245DBBAC71611D08BECFF1C4 /* BannerStylesView.swift */,
+				FBAFD8D16DBDEF6AFBD21821 /* NativeAdStylesView.swift */,
+				8710092188B485C0DAA46F5C /* ConsentDemoView.swift */,
 			);
 			path = AdmobSwitUIDemo;
 			sourceTree = "<group>";
@@ -159,6 +168,9 @@
 			files = (
 				1C415EE82A37D10A00D03783 /* ContentView.swift in Sources */,
 				1C415EE62A37D10A00D03783 /* AdmobSwitUIDemoApp.swift in Sources */,
+				7D9BB906D7A62A7AD41C2EF0 /* BannerStylesView.swift in Sources */,
+				7C5249A9F34D5E8BE8520C31 /* NativeAdStylesView.swift in Sources */,
+				057E5BF1ACD300FF3933170C /* ConsentDemoView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,40 +1,27 @@
-//
-//  File.swift
-//  
-//
-//  Created by minghui on 2023/6/15.
-//
-
-import GoogleMobileAds
 import SwiftUI
 
-public enum NativeAdViewStyle {
+/// Built-in native ad templates, all implemented in SwiftUI as of v3.
+public enum NativeAdViewStyle: CaseIterable, Sendable {
+    /// Free-form layout with full body text and centered media (former XIB).
     case basic
+    /// Media-led card with icon, rating row and a prominent CTA.
     case card
+    /// Compact text-only row with the app icon on the right; no media.
     case banner
+    /// Media on the left, text column on the right.
     case largeBanner
-    
-    var view: GoogleMobileAds.NativeAdView {
+
+    @MainActor @ViewBuilder
+    func makeBody(assets: NativeAdAssets) -> some View {
         switch self {
         case .basic:
-            return makeNibView(name: "NativeAdView")
+            NativeAdBasicTemplate(assets: assets)
         case .card:
-            return NativeAdCardView(frame: .zero)
+            NativeAdCardTemplate(assets: assets)
         case .banner:
-            return NativeAdBannerView(frame: .zero)
+            NativeAdBannerTemplate(assets: assets)
         case .largeBanner:
-            return NativeLargeAdBannerView(frame: .zero)
+            NativeAdLargeBannerTemplate(assets: assets)
         }
-    }
-    
-    func makeNibView(name: String) -> GoogleMobileAds.NativeAdView {
-        let bundle = Bundle.module
-        let nib = UINib(nibName: name, bundle: bundle)
-        guard let view = nib.instantiate(withOwner: nil, options: nil).first as? GoogleMobileAds.NativeAdView else {
-            assertionFailure("AdmobSwiftUI: Failed to load \(name).xib as NativeAdView")
-            AdmobSwiftUI.log("Failed to load \(name).xib as NativeAdView, falling back to empty view", level: .error)
-            return GoogleMobileAds.NativeAdView(frame: .zero)
-        }
-        return view
     }
 }

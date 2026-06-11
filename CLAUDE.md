@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI applications. It supports multiple ad formats: Banner, Interstitial, App Open, Rewarded, Rewarded Interstitial, and Native ads.
+AdmobSwiftUI is a Swift package that integrates Google AdMob ads into SwiftUI applications. It supports multiple ad formats: Banner, Interstitial, App Open, Rewarded, Rewarded Interstitial, and Native ads, plus UMP consent management (GDPR) and ATT integration.
 
-**Current Version:** 2.1.0
+**Current Version:** 3.0.0
 
 ## Build Commands
 
-This is an iOS-only Swift package targeting iOS 14.0+.
+This is an iOS-only Swift package targeting iOS 15.0+, compiled in Swift 6 language mode.
 
 > ⚠️ GoogleMobileAds is an iOS-only binary target. `swift build` / `swift test` on macOS DO NOT work. Always verify with xcodebuild + iOS Simulator.
 
@@ -21,69 +21,76 @@ This is an iOS-only Swift package targeting iOS 14.0+.
   xcodebuild build -project Demo/AdmobSwitUIDemo.xcodeproj -scheme AdmobSwitUIDemo -destination 'platform=iOS Simulator,name=iPhone 17'
   ```
 
+CI (`.github/workflows/ci.yml`) runs package tests and the Demo build on every PR and on pushes to `main` / `release/*`.
+
 > Note: 本機網路若有 DNS 層擋廣告（如 AdGuard/Pi-hole 擋 `googleads.g.doubleclick.net`），模擬器上測試廣告會載不出來（SDK 回報 "Could not retrieve application configuration data"）。實測廣告前先確認該網域可解析。
 
 ## Architecture
 
 ### Core Components
 
-- **AdmobSwiftUI.swift**: Package entry point with configuration, ad unit ID management, error types, and logging
-- **Banner Ads**: `BannerView.swift`, `BannerViewController.swift`, `BannerViewStyle.swift` - SwiftUI wrapper for adaptive banners
-- **Fullscreen Ads**: Separate coordinators for each ad type in `Fullscreen/` directory
-  - `InterstitialAdCoordinator.swift` - Interstitial ads
-  - `AppOpenAdCoordinator.swift` - App Open ads with 4-hour expiration
-  - `RewardedAdCoordinator.swift` - Rewarded and Rewarded Interstitial ads
-- **Native Ads**: Complete native ad implementation with multiple view styles in `Native/` directory
+- **AdmobSwiftUI.swift**: Package entry point — async `initialize(with:consentMode:)` (runs UMP consent flow before starting the SDK), Configuration, AdUnitIDs management, error types, logging
+- **Banner Ads**: `BannerView` is a self-sizing SwiftUI view (no external `.frame(height:)` needed) with `.anchored` / `.inline` / `.collapsible` styles and `BannerAdEvent` callbacks
+- **Fullscreen Ads**: Coordinators in `Fullscreen/`, unified by the `FullScreenAdCoordinator` protocol (`adState` / `isReady` / `load()` / `present(from:)` / `loadAndPresent(from:)`), all `@MainActor`
+  - `InterstitialAdCoordinator` - Interstitial ads
+  - `AppOpenAdCoordinator` - App Open ads: 4-hour expiration, `autoReloadsOnForeground`, `presentIfAvailable(from:)`
+  - `RewardedAdCoordinator` - Rewarded and Rewarded Interstitial ads; `present(from:)` suspends until the reward is earned and returns `AdReward`
+- **Native Ads** (`Native/`): pure SwiftUI — `AdmobNativeAdContainer` hosts a custom layout inside a `GADNativeAdView`; `NativeAdAssets` vends pre-bound, click-attributed components; `NativeAdView` renders the built-in templates (`.basic` / `.card` / `.banner` / `.largeBanner`); `NativeAdViewModel` loads with caching/throttling
+- **Consent** (`Consent/`): `ConsentManager` (UMP + ATT) over an internal `ConsentService` protocol (mockable in tests)
 - **AdViewControllerRepresentable**: Bridge for presenting fullscreen ads from SwiftUI
 
 ### Directory Structure
 
 ```
 Sources/AdmobSwiftUI/
-├── AdmobSwiftUI.swift          # Package entry point, Configuration, AdUnitIDs, Error types
+├── AdmobSwiftUI.swift          # Entry point, async initialize, Configuration, AdUnitIDs, errors
 ├── Banner/
-│   ├── BannerView.swift        # SwiftUI banner view
+│   ├── BannerView.swift        # Self-sizing SwiftUI banner (representable + coordinator)
 │   ├── BannerViewController.swift
-│   └── BannerViewStyle.swift   # .anchored / .inline styles
+│   ├── BannerViewStyle.swift   # .anchored / .inline / .collapsible(placement:)
+│   └── BannerAdEvent.swift
 ├── Fullscreen/
 │   ├── InterstitialAdCoordinator.swift
 │   ├── AppOpenAdCoordinator.swift
 │   ├── RewardedAdCoordinator.swift
 │   └── AdViewControllerRepresentable.swift
 ├── Native/
+│   ├── NativeAdContainer.swift  # AdmobNativeAdContainer + asset registry
+│   ├── NativeAdAssets.swift     # Pre-bound components, .nativeAdAsset(_:), AdBadge
+│   ├── NativeAdTemplates.swift  # Built-in SwiftUI templates
 │   ├── NativeAdView.swift
-│   ├── NativeAdViewModel.swift  # Thread-safe caching
+│   ├── NativeAdViewModel.swift
 │   ├── NativeAdViewStyle.swift
-│   └── ... (XIB-based views)
-├── Extensions/
-│   └── UIColor+Hex.swift
-└── Resources/
-    └── ... (XIBs, assets, localizations)
+│   └── AdCache.swift
+├── Consent/
+│   ├── ConsentManager.swift     # UMP flow + ATT
+│   └── ConsentService.swift     # internal protocol (mockable)
+├── Protocols/
+│   ├── FullScreenAdCoordinator.swift  # AdState, AdReward, protocol
+│   └── AdCoordinatorProtocol.swift    # deprecated v2 protocols
+└── Resources/                   # assets, localizations (string catalog)
 ```
 
 ### Key Dependencies
 
-- Google Mobile Ads SDK 12.9.0+
-- iOS 14.0+ requirement
+- Google Mobile Ads SDK 13.5+
+- UserMessagingPlatform 3.0+ (explicitly pinned — UMP 3.0 renamed the whole Swift API)
+- iOS 15.0+ requirement
 
 ### Ad Implementation Pattern
 
-1. Initialize AdmobSwiftUI in App: `AdmobSwiftUI.initialize()`
-2. Use coordinators for fullscreen ads (async/await pattern)
-3. Use SwiftUI views directly for banner and native ads
+1. Initialize in App: `await AdmobSwiftUI.initialize()` (in `.task`), then `await ConsentManager.shared.requestTrackingAuthorization()`
+2. Use coordinators for fullscreen ads (async/await; `@StateObject`)
+3. Use SwiftUI views directly for banner and native ads (both self-sizing — no external height frames)
 4. Include `AdViewControllerRepresentable` in view hierarchy for fullscreen ad presentation
 
-### Key Features (v2.0.0)
+### Versioning / Compatibility
 
-- **AdUnitIDs Management**: Automatic test/production switching based on build configuration
-- **Configuration System**: Centralized SDK configuration
-- **Error Handling**: Unified `AdmobSwiftUIError` type
-- **Logging**: Built-in logging with configurable levels
-- **Banner Styles**: `.anchored` (default) and `.inline` for scrollable content
-- **Thread-safe Caching**: Native ad cache with size management
+- v2 APIs remain as deprecated shims; removal planned for 4.0. Migration paths (v2→v3, v1.2.3→v3) are documented in MIGRATION.md.
+- `release/3.0` is the v3 integration branch; PRs for v3 work target it, not `main`.
 
 ### Configuration Requirements
 
 - Add `-ObjC` flag to "Other Linker Flags" in build settings
-- Configure Info.plist with `GADApplicationIdentifier`
-- Initialize AdmobSwiftUI at app startup: `AdmobSwiftUI.initialize()`
+- Info.plist: `GADApplicationIdentifier`, `NSUserTrackingUsageDescription` (ATT); optionally `GADDelayAppMeasurementInit`
+- Initialize at app startup: `await AdmobSwiftUI.initialize()`

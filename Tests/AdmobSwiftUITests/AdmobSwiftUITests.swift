@@ -1,4 +1,5 @@
 import XCTest
+import GoogleMobileAds
 @testable import AdmobSwiftUI
 
 final class AdmobSwiftUITests: XCTestCase {
@@ -50,6 +51,14 @@ final class AdmobSwiftUITests: XCTestCase {
     func testConstants() throws {
         XCTAssertEqual(AdmobSwiftUI.Constants.appOpenAdExpirationInterval, 4 * 60 * 60)
         XCTAssertEqual(AdmobSwiftUI.Constants.nativeAdCacheMaxSize, 10)
+        XCTAssertEqual(AdmobSwiftUI.Constants.nativeAdDefaultRequestInterval, 60)
+    }
+
+    func testRewardNotEarnedErrorMessage() throws {
+        XCTAssertEqual(
+            AdmobSwiftUIError.rewardNotEarned.errorDescription,
+            "The rewarded ad was dismissed before the reward was earned"
+        )
     }
 }
 
@@ -83,6 +92,7 @@ final class AdUnitIDsTests: XCTestCase {
     }
 }
 
+@MainActor
 final class CoordinatorInitializationTests: XCTestCase {
 
     func testInterstitialAdCoordinatorDefaultInit() throws {
@@ -100,7 +110,7 @@ final class CoordinatorInitializationTests: XCTestCase {
     func testRewardedAdCoordinatorWithCustomAdUnits() throws {
         let coordinator = RewardedAdCoordinator(
             adUnitID: "test-rewarded-id",
-            InterstitialID: "test-rewarded-interstitial-id"
+            interstitialAdUnitID: "test-rewarded-interstitial-id"
         )
         XCTAssertNotNil(coordinator)
     }
@@ -108,10 +118,84 @@ final class CoordinatorInitializationTests: XCTestCase {
     func testAppOpenAdCoordinatorDefaultInit() throws {
         let coordinator = AppOpenAdCoordinator()
         XCTAssertNotNil(coordinator)
-        XCTAssertFalse(coordinator.isAdAvailable)
+        XCTAssertFalse(coordinator.isReady)
     }
 }
 
+@MainActor
+final class FullScreenAdCoordinatorStateTests: XCTestCase {
+
+    func testInterstitialInitialState() throws {
+        let coordinator = InterstitialAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testInterstitialPresentWithoutLoadThrowsAdNotLoaded() throws {
+        let coordinator = InterstitialAdCoordinator()
+        XCTAssertThrowsError(try coordinator.present(from: UIViewController())) { error in
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        // A failed present must not leave the coordinator in a stuck state.
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAppOpenInitialState() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testAppOpenPresentWithoutLoadThrowsAdNotLoaded() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertThrowsError(try coordinator.present(from: UIViewController())) { error in
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAppOpenAutoReloadsOnForegroundToggle() throws {
+        let coordinator = AppOpenAdCoordinator()
+        XCTAssertFalse(coordinator.autoReloadsOnForeground)
+        coordinator.autoReloadsOnForeground = true
+        XCTAssertTrue(coordinator.autoReloadsOnForeground)
+        coordinator.autoReloadsOnForeground = false
+        XCTAssertFalse(coordinator.autoReloadsOnForeground)
+    }
+
+    func testRewardedInitialState() throws {
+        let coordinator = RewardedAdCoordinator()
+        XCTAssertEqual(coordinator.adState, .idle)
+        XCTAssertFalse(coordinator.isReady)
+    }
+
+    func testRewardedPresentWithoutLoadThrowsAdNotLoaded() async throws {
+        let coordinator = RewardedAdCoordinator()
+        do {
+            _ = try await coordinator.present(from: UIViewController())
+            XCTFail("Expected present to throw")
+        } catch {
+            guard case AdmobSwiftUIError.adNotLoaded = error else {
+                return XCTFail("Expected adNotLoaded, got \(error)")
+            }
+        }
+        XCTAssertEqual(coordinator.adState, .idle)
+    }
+
+    func testAdRewardEquatable() throws {
+        let reward = AdReward(amount: 10, type: "coins")
+        XCTAssertEqual(reward, AdReward(amount: 10, type: "coins"))
+        XCTAssertNotEqual(reward, AdReward(amount: 5, type: "coins"))
+        XCTAssertEqual(reward.amount, 10)
+        XCTAssertEqual(reward.type, "coins")
+    }
+}
+
+@MainActor
 final class NativeAdViewModelTests: XCTestCase {
 
     func testNativeAdViewModelInitialization() throws {
@@ -130,57 +214,119 @@ final class NativeAdViewModelTests: XCTestCase {
     }
 }
 
-final class UIViewExtensionsTests: XCTestCase {
+final class BannerViewStyleTests: XCTestCase {
 
-    func testHstackVariadicIncludesAllViews() throws {
-        let label1 = UILabel(text: "one")
-        let label2 = UILabel(text: "two")
-        let label3 = UILabel(text: "three")
-
-        let stackView = hstack(label1, label2, label3, spacing: 8)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 3)
-        XCTAssertEqual(stackView.arrangedSubviews, [label1, label2, label3])
-        XCTAssertEqual(stackView.axis, .horizontal)
-        XCTAssertEqual(stackView.spacing, 8)
+    func testCollapsiblePlacementRawValuesMatchAdMobParameters() throws {
+        // Extras additionalParameters 的值必須是 "top" / "bottom"（Google 規格）
+        XCTAssertEqual(BannerViewStyle.CollapsiblePlacement.top.rawValue, "top")
+        XCTAssertEqual(BannerViewStyle.CollapsiblePlacement.bottom.rawValue, "bottom")
     }
 
-    func testHstackArrayIncludesAllViews() throws {
-        let views = [UIView(), UIView()]
-        let stackView = hstack(views, distribution: .fillEqually)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 2)
-        XCTAssertEqual(stackView.axis, .horizontal)
-        XCTAssertEqual(stackView.distribution, .fillEqually)
-    }
-
-    func testStackDefaultsToVertical() throws {
-        let stackView = stack(UIView(), UIView(), spacing: 4, alignment: .center)
-
-        XCTAssertEqual(stackView.arrangedSubviews.count, 2)
-        XCTAssertEqual(stackView.axis, .vertical)
-        XCTAssertEqual(stackView.spacing, 4)
-        XCTAssertEqual(stackView.alignment, .center)
-        XCTAssertFalse(stackView.translatesAutoresizingMaskIntoConstraints)
-    }
-
-    func testWithWidthAndHeight() throws {
-        let view = UIView()
-        view.withWidth(100).withHeight(50)
-
-        XCTAssertFalse(view.translatesAutoresizingMaskIntoConstraints)
-        let widthConstraint = view.constraints.first { $0.firstAttribute == .width }
-        let heightConstraint = view.constraints.first { $0.firstAttribute == .height }
-        XCTAssertEqual(widthConstraint?.constant, 100)
-        XCTAssertEqual(heightConstraint?.constant, 50)
+    func testStyleEquatable() throws {
+        XCTAssertEqual(BannerViewStyle.anchored, .anchored)
+        XCTAssertEqual(BannerViewStyle.inline, .inline)
+        XCTAssertEqual(
+            BannerViewStyle.collapsible(placement: .bottom),
+            .collapsible(placement: .bottom)
+        )
+        XCTAssertNotEqual(
+            BannerViewStyle.collapsible(placement: .top),
+            .collapsible(placement: .bottom)
+        )
+        XCTAssertNotEqual(BannerViewStyle.anchored, .inline)
     }
 }
 
+@MainActor
+final class BannerViewTests: XCTestCase {
+
+    func testBannerViewInitWithAllStyles() throws {
+        XCTAssertNotNil(BannerView(style: .anchored))
+        XCTAssertNotNil(BannerView(style: .inline))
+        XCTAssertNotNil(BannerView(style: .collapsible(placement: .top)))
+        XCTAssertNotNil(BannerView(style: .collapsible(placement: .bottom)))
+    }
+
+    func testBannerViewInitWithAdEventClosure() throws {
+        let view = BannerView(adUnitID: "custom-banner-id", style: .anchored) { _ in }
+        XCTAssertNotNil(view)
+    }
+}
+
+@MainActor
 final class NativeAdViewStyleTests: XCTestCase {
 
-    func testAllStylesProduceNativeAdView() throws {
-        for style in [NativeAdViewStyle.basic, .card, .banner, .largeBanner] {
-            XCTAssertNotNil(style.view, "Style \(style) failed to produce a view")
+    func testStyleCasesAreComplete() throws {
+        XCTAssertEqual(NativeAdViewStyle.allCases, [.basic, .card, .banner, .largeBanner])
+    }
+
+    func testNativeAdViewInitWithAllStyles() throws {
+        let viewModel = NativeAdViewModel()
+        for style in NativeAdViewStyle.allCases {
+            XCTAssertNotNil(NativeAdView(nativeViewModel: viewModel, style: style))
         }
+    }
+}
+
+@MainActor
+final class NativeAdAssetRegistryTests: XCTestCase {
+
+    func testRegisterWiresOutletsToAdView() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let headline = UIView()
+        let cta = UIView()
+        let icon = UIView()
+        registry.register(headline, for: .headline)
+        registry.register(cta, for: .callToAction)
+        registry.register(icon, for: .icon)
+
+        // apply() is coalesced onto the next main runloop turn.
+        await Task.yield()
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertIdentical(adView.headlineView, headline)
+        XCTAssertIdentical(adView.callToActionView, cta)
+        XCTAssertIdentical(adView.iconView, icon)
+    }
+
+    func testUnregisterClearsOutlet() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let headline = UIView()
+        registry.register(headline, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertIdentical(adView.headlineView, headline)
+
+        registry.unregister(headline, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertNil(adView.headlineView)
+    }
+
+    func testUnregisterIgnoresStaleView() async throws {
+        let registry = NativeAdAssetRegistry()
+        let adView = GoogleMobileAds.NativeAdView()
+        registry.adView = adView
+
+        let current = UIView()
+        let stale = UIView()
+        registry.register(current, for: .headline)
+        registry.unregister(stale, for: .headline)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertIdentical(adView.headlineView, current)
+    }
+
+    func testStarRatingImageThresholds() throws {
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 5.0)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 4.5)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 4.0)))
+        XCTAssertNotNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 3.5)))
+        XCTAssertNil(NativeAdStarRatingView.image(for: NSDecimalNumber(value: 3.4)))
+        XCTAssertNil(NativeAdStarRatingView.image(for: nil))
     }
 }

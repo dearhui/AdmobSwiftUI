@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/*
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Package tests (iOS Simulator)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # GoogleMobileAds is an iOS-only binary target, so `swift test` on macOS
+      # cannot work — tests must run through xcodebuild with a simulator destination.
+      - name: Run package tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -scheme AdmobSwiftUI \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO
+
+  build-demo:
+    name: Build demo app
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build demo
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Demo/AdmobSwitUIDemo.xcodeproj \
+            -scheme AdmobSwitUIDemo \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
