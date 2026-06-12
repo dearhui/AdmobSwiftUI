@@ -6,7 +6,7 @@ import GoogleMobileAds
 public struct AdmobSwiftUI {
     
     /// Package version
-    public static let version = "3.0.0"
+    public static let version = "3.0.1"
 
     /// Constants shared across the package
     public enum Constants {

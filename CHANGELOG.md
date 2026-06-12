@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-06-12
+
+### Fixed
+
+- **Native ads no longer stretch to fill a concrete height proposal.** `NativeAdView` / `AdmobNativeAdContainer` adopted the parent's proposed height in `sizeThatFits`, so placing the ad directly in a `VStack` (outside a `List`/`ScrollView`) stretched it over the leftover screen space with the content floating in the middle. The view now always hugs its content height for the proposed width, matching the "automatic height" behaviour documented in MIGRATION.md and making sizing consistent across containers.
+
 ## [3.0.0] - 2026-06-11
 
 A major release: Google Mobile Ads SDK 13, Swift 6 language mode, a unified async/await API, UMP consent management, pure-SwiftUI native ads, and self-sizing banners. See [MIGRATION.md](MIGRATION.md) for upgrade paths from 2.x and 1.x.

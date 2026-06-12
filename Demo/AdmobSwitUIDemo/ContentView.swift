@@ -93,6 +93,10 @@ struct ContentView: View {
                         NativeAdStylesView()
                     }
 
+                    NavigationLink("Native Ad in VStack (sizing repro)") {
+                        NativeAdVStackSizingView()
+                    }
+
                     NavigationLink("Legacy v2 API (deprecated)") {
                         LegacyAPIView()
                     }

@@ -164,11 +164,15 @@ struct NativeAdHostingView<Content: View>: UIViewRepresentable {
                       uiView: GoogleMobileAds.NativeAdView,
                       context: Context) -> CGSize? {
         guard let host = context.coordinator.hostingController else { return nil }
+        // Height always hugs the content for the proposed width. Adopting a
+        // concrete height proposal would stretch the ad to fill containers
+        // that distribute leftover space (e.g. a plain VStack), while nil
+        // proposals (List rows, ScrollView) already hugged — the same view
+        // must size consistently in both.
         let target = CGSize(width: proposal.width ?? UIView.layoutFittingExpandedSize.width,
-                            height: proposal.height ?? UIView.layoutFittingExpandedSize.height)
+                            height: UIView.layoutFittingExpandedSize.height)
         var size = host.sizeThatFits(in: target)
         if let width = proposal.width { size.width = width }
-        if let height = proposal.height { size.height = height }
         return size
     }
 
