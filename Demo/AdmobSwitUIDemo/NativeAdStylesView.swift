@@ -120,6 +120,35 @@ struct NativeAdStylesView: View {
     }
 }
 
+/// 3.0.0 sizing bug 的回歸場景：廣告直放在 VStack（ScrollView 之外），
+/// 父容器會提案剩餘螢幕高度——廣告必須維持內容高度，不能被撐滿。
+struct NativeAdVStackSizingView: View {
+    @StateObject private var nativeViewModel = NativeAdViewModel(requestInterval: 60)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            NativeAdView(nativeViewModel: nativeViewModel, style: .largeBanner)
+                .background(Color(UIColor.secondarySystemBackground))
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(0..<30, id: \.self) { i in
+                        Text("Content row \(i)")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Divider()
+                    }
+                }
+                .padding()
+            }
+        }
+        .navigationTitle("VStack sizing")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            try? await nativeViewModel.load()
+        }
+    }
+}
+
 #Preview {
     NavigationStack {
         NativeAdStylesView()
