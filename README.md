@@ -128,6 +128,10 @@ BannerView()
 // Inline adaptive banner for scrollable content
 BannerView(style: .inline)
 
+// Inline with a height cap — uncapped inline ads may grow up to the
+// device height (Google requires >= 32pt, recommends >= 50pt)
+BannerView(style: .inline(maxHeight: 150))
+
 // Collapsible banner (mind Google's display policies)
 BannerView(style: .collapsible(placement: .bottom))
 

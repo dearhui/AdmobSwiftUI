@@ -5,6 +5,7 @@
 //  Created by minghui on 2023/6/13.
 //
 
+import CoreGraphics
 import Foundation
 
 /// Banner ad display style
@@ -14,7 +15,13 @@ public enum BannerViewStyle: Equatable, Sendable {
     case anchored
     /// Inline adaptive banner - embedded within scrollable content.
     /// Height is unknown until the ad loads; observe ``BannerAdEvent/didReceive(adSize:)``.
-    case inline
+    /// - Parameter maxHeight: Optional height cap. `nil` means no cap — the ad
+    ///   may grow up to the device height. Google requires >= 32pt and
+    ///   recommends >= 50pt.
+    case inline(maxHeight: CGFloat?)
+
+    /// Inline adaptive banner with no height cap.
+    public static let inline: BannerViewStyle = .inline(maxHeight: nil)
     /// Collapsible banner - an anchored adaptive banner that initially shows a
     /// larger overlay and collapses to the regular anchored size.
     ///

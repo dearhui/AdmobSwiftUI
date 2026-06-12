@@ -86,8 +86,12 @@ struct BannerViewRepresentable: UIViewControllerRepresentable {
         case .anchored, .collapsible:
             // SDK 13: large anchored adaptive banner (50-150pt tall, supports video demand)
             largeAnchoredAdaptiveBanner(width: viewWidth)
-        case .inline:
-            currentOrientationInlineAdaptiveBanner(width: viewWidth)
+        case .inline(let maxHeight):
+            if let maxHeight {
+                inlineAdaptiveBanner(width: viewWidth, maxHeight: maxHeight)
+            } else {
+                currentOrientationInlineAdaptiveBanner(width: viewWidth)
+            }
         }
         if currentAdSize == nil || !isAdSizeEqualToSize(size1: currentAdSize!, size2: newAdSize) {
             DispatchQueue.main.async {
@@ -95,7 +99,7 @@ struct BannerViewRepresentable: UIViewControllerRepresentable {
                 // Anchored heights are exact once the width is known, so the
                 // layout can be reserved before the ad loads. The inline size's
                 // height is only an upper bound — wait for didReceive instead.
-                if case .inline = style {} else {
+                if case .inline(_) = style {} else {
                     self.adHeight = newAdSize.size.height
                 }
             }

@@ -235,6 +235,14 @@ final class BannerViewStyleTests: XCTestCase {
         )
         XCTAssertNotEqual(BannerViewStyle.anchored, .inline)
     }
+
+    func testInlineMaxHeight() throws {
+        // 無參數簡寫等同 maxHeight: nil（源碼相容）
+        XCTAssertEqual(BannerViewStyle.inline, .inline(maxHeight: nil))
+        XCTAssertEqual(BannerViewStyle.inline(maxHeight: 150), .inline(maxHeight: 150))
+        XCTAssertNotEqual(BannerViewStyle.inline(maxHeight: 150), .inline)
+        XCTAssertNotEqual(BannerViewStyle.inline(maxHeight: 150), .inline(maxHeight: 120))
+    }
 }
 
 @MainActor
@@ -243,6 +251,7 @@ final class BannerViewTests: XCTestCase {
     func testBannerViewInitWithAllStyles() throws {
         XCTAssertNotNil(BannerView(style: .anchored))
         XCTAssertNotNil(BannerView(style: .inline))
+        XCTAssertNotNil(BannerView(style: .inline(maxHeight: 150)))
         XCTAssertNotNil(BannerView(style: .collapsible(placement: .top)))
         XCTAssertNotNil(BannerView(style: .collapsible(placement: .bottom)))
     }
