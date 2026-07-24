@@ -79,11 +79,14 @@ public final class RewardedAdCoordinator: NSObject, ObservableObject {
     }
 
     /// Presents the loaded ad and suspends until the user earns the reward.
+    /// - Parameter viewController: Presenting view controller. Pass `nil`
+    ///   (default) to let the SDK present from the top-most view controller
+    ///   automatically — the recommended approach for SwiftUI apps.
     /// - Returns: The earned ``AdReward``.
     /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready,
     ///   ``AdmobSwiftUIError/rewardNotEarned`` if the user dismisses the ad
     ///   before earning the reward.
-    public func present(from viewController: UIViewController) async throws -> AdReward {
+    public func present(from viewController: UIViewController? = nil) async throws -> AdReward {
         guard adState == .ready else {
             throw AdmobSwiftUIError.adNotLoaded
         }
@@ -110,7 +113,7 @@ public final class RewardedAdCoordinator: NSObject, ObservableObject {
 
     /// Loads an ad if needed, presents it, and suspends until the reward is earned.
     @discardableResult
-    public func loadAndPresent(_ kind: AdKind = .rewarded, from viewController: UIViewController) async throws -> AdReward {
+    public func loadAndPresent(_ kind: AdKind = .rewarded, from viewController: UIViewController? = nil) async throws -> AdReward {
         if !isReady {
             try await load(kind)
         }

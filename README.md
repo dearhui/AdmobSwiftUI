@@ -148,23 +148,17 @@ BannerView { event in
 
 ## Interstitial Ads
 
-All fullscreen coordinators share the same shape: `adState` / `isReady` / `load()` / `present(from:)` / `loadAndPresent(from:)`. Include an `AdViewControllerRepresentable` in the hierarchy to obtain a presenting view controller.
+All fullscreen coordinators share the same shape: `adState` / `isReady` / `load()` / `present(from:)` / `loadAndPresent(from:)`. The view controller parameter defaults to `nil`, letting the SDK present from the top-most view controller automatically — the recommended approach for SwiftUI apps ([official docs](https://developers.google.com/admob/ios/interstitial#swiftui)). Pass one explicitly (e.g. via `AdViewControllerRepresentable`) only when you need a specific presenter.
 
 ```swift
 struct ContentView: View {
-    private let adViewControllerRepresentable = AdViewControllerRepresentable()
     @StateObject private var interstitialCoordinator = InterstitialAdCoordinator()
 
     var body: some View {
         Button("Show Interstitial") {
             Task {
-                try? await interstitialCoordinator.loadAndPresent(
-                    from: adViewControllerRepresentable.viewController
-                )
+                try? await interstitialCoordinator.loadAndPresent()
             }
-        }
-        .background {
-            adViewControllerRepresentable.frame(width: .zero, height: .zero)
         }
     }
 }
@@ -201,9 +195,7 @@ struct RootView: View {
 Button("Watch ad to earn coins") {
     Task {
         do {
-            let reward = try await rewardCoordinator.loadAndPresent(
-                from: adViewControllerRepresentable.viewController
-            )
+            let reward = try await rewardCoordinator.loadAndPresent()
             grantCoins(reward.amount)   // reward.type from your ad unit config
         } catch {
             print("No reward: \(error)")

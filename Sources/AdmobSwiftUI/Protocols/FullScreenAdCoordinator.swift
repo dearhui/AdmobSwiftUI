@@ -52,17 +52,20 @@ public protocol FullScreenAdCoordinator: AnyObject, ObservableObject {
     func load() async throws
 
     /// Present the loaded ad.
+    /// - Parameter viewController: Presenting view controller. Pass `nil` to let
+    ///   the SDK present from the top-most view controller automatically —
+    ///   the recommended approach for SwiftUI apps.
     /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready.
-    func present(from viewController: UIViewController) throws
+    func present(from viewController: UIViewController?) throws
 
     /// Load an ad if needed, then present it.
-    func loadAndPresent(from viewController: UIViewController) async throws
+    func loadAndPresent(from viewController: UIViewController?) async throws
 }
 
 extension FullScreenAdCoordinator {
     public var isReady: Bool { adState == .ready }
 
-    public func loadAndPresent(from viewController: UIViewController) async throws {
+    public func loadAndPresent(from viewController: UIViewController? = nil) async throws {
         if !isReady {
             try await load()
         }

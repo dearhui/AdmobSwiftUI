@@ -55,8 +55,11 @@ public final class InterstitialAdCoordinator: NSObject, ObservableObject, FullSc
     }
 
     /// Presents the loaded interstitial ad.
+    /// - Parameter viewController: Presenting view controller. Pass `nil`
+    ///   (default) to let the SDK present from the top-most view controller
+    ///   automatically — the recommended approach for SwiftUI apps.
     /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready.
-    public func present(from viewController: UIViewController) throws {
+    public func present(from viewController: UIViewController? = nil) throws {
         guard let interstitial else {
             throw AdmobSwiftUIError.adNotLoaded
         }
@@ -120,7 +123,6 @@ extension InterstitialAdCoordinator {
 // MARK: - Usage Example
 /*
 struct SampleView: View {
-    private let adViewControllerRepresentable = AdViewControllerRepresentable()
     @StateObject private var interstitialAdCoordinator = InterstitialAdCoordinator()
 
     var body: some View {
@@ -130,20 +132,16 @@ struct SampleView: View {
             Button("Show Interstitial Ad") {
                 Task {
                     do {
-                        try await interstitialAdCoordinator.loadAndPresent(
-                            from: adViewControllerRepresentable.viewController
-                        )
+                        // Pass no view controller: the SDK presents from the
+                        // top-most view controller automatically (recommended
+                        // for SwiftUI). To present from a specific controller,
+                        // use `loadAndPresent(from: viewController)`.
+                        try await interstitialAdCoordinator.loadAndPresent()
                     } catch {
                         print("Failed to show interstitial ad: \(error)")
                     }
                 }
             }
-        }
-        .background {
-            // Add the adViewControllerRepresentable to the background so it
-            // does not influence the placement of other views in the view hierarchy.
-            adViewControllerRepresentable
-                .frame(width: .zero, height: .zero)
         }
     }
 }

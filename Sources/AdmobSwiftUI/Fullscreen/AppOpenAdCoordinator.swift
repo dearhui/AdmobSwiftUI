@@ -88,9 +88,12 @@ public final class AppOpenAdCoordinator: NSObject, ObservableObject, FullScreenA
     }
 
     /// Presents the loaded App Open ad.
+    /// - Parameter viewController: Presenting view controller. Pass `nil`
+    ///   (default) to let the SDK present from the top-most view controller
+    ///   automatically — the recommended approach for SwiftUI apps.
     /// - Throws: ``AdmobSwiftUIError/adNotLoaded`` if no ad is ready,
     ///   ``AdmobSwiftUIError/adExpired`` if the loaded ad is older than 4 hours.
-    public func present(from viewController: UIViewController) throws {
+    public func present(from viewController: UIViewController? = nil) throws {
         guard let appOpenAd else {
             throw AdmobSwiftUIError.adNotLoaded
         }
